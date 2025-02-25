@@ -17,6 +17,6 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         /// </summary>
         /// <typeparam name="TExcelItem"></typeparam>
         /// <returns></returns>
-        public List<RegionStatisticsDto> Parse(ExcelWorksheet worksheet, int startRowNumber, List<int> years, int endColumnNumber = 10); 
+        public List<RegionStatisticsDto> Parse(string path, int startRowNumber, List<int> years, int endColumnNumber = 10); 
     }
 }

@@ -33,6 +33,7 @@
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             comboBox1 = new ComboBox();
+            comboBox2 = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)chart1).BeginInit();
             SuspendLayout();
             // 
@@ -61,11 +62,20 @@
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 1;
             // 
+            // comboBox2
+            // 
+            comboBox2.FormattingEnabled = true;
+            comboBox2.Location = new Point(911, 423);
+            comboBox2.Name = "comboBox2";
+            comboBox2.Size = new Size(121, 23);
+            comboBox2.TabIndex = 2;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2100, 1015);
+            Controls.Add(comboBox2);
             Controls.Add(comboBox1);
             Controls.Add(chart1);
             Name = "MainForm";
@@ -78,5 +88,6 @@
 
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private ComboBox comboBox1;
+        private ComboBox comboBox2;
     }
 }

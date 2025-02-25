@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms.DataVisualization.Charting;
+using static OfficeOpenXml.ExcelErrorValue;
 
 namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
 {
@@ -8,7 +9,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
         public Series PainLinearGraph(string name, List<double> xValues, List<double> yValues)
         {
             if (xValues.Count != yValues.Count)
-                return null;
+                (xValues, yValues) = FixLenght(xValues, yValues);
 
             var series = new Series
             {
@@ -25,7 +26,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
         public Series PainLinearGraph(string name, List<int> xValues, List<int> yValues)
         {
             if (xValues.Count != yValues.Count)
-                return null;
+                (xValues, yValues) = FixLenght(xValues, yValues);
 
             var doubleXValue = xValues.Select(Convert.ToDouble).ToList();
             var doubleVYalue = yValues.Select(Convert.ToDouble).ToList();
@@ -51,6 +52,36 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             var b = randomizer.Next(0, 255);
 
             return Color.FromArgb(255, r, b, b);
+        }
+
+        private (List<T>, List<T>) FixLenght<T>(List<T> xValues, List<T> yValues)
+        {
+            var resultX = new List<T>();
+            var resultY = new List<T>();
+
+            if (yValues.Count > xValues.Count)
+                (resultX, resultY) = Switch(xValues, yValues);
+            else
+                (resultY, resultX) = Switch(yValues, xValues);
+
+            return (resultX, resultY);
+        }
+
+        private (List<T>, List<T>) Switch<T>(List<T> firstValues, List<T> secondValues)
+        {
+            var firstLength = firstValues.Count;
+            var secondLength = secondValues.Count;
+            var newSecondValues = new List<T>();
+
+            for (int i = 0; i < secondValues.Count; i++)
+            {
+                if (secondLength > firstLength)
+                    secondLength--;
+                else
+                    newSecondValues.Add(secondValues[i]);
+            }
+
+            return (firstValues, newSecondValues);
         }
     }
 }

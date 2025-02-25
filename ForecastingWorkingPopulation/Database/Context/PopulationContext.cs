@@ -7,7 +7,7 @@ namespace ForecastingWorkingPopulation.Database.Context
     {
         public DbSet<EmployedEconomyPopulationInRegionEntity> EmployedEconomyPopulations { get; set; }
         public DbSet<PermanentPopulationInRegionEntity> PermanentPopulations { get; set; }
-
+        public DbSet<RegionInfoEntity> Regions { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=Population.db");

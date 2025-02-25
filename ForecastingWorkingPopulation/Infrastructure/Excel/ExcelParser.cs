@@ -12,15 +12,15 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
 {
     public class ExcelParser : IExcelParser
     {
-        public List<RegionStatisticsDto> Parse(ExcelWorksheet worksheet, int startRowNumber, List<int> years, int endColumnNumber = 10)
+        public List<RegionStatisticsDto> Parse(string path, int startRowNumber, List<int> years, int endColumnNumber = 10)
         {
-            string path = "C:\\Excels\\Республика Карелия.xlsx";
+            //string path = "C:\\Excels\\Республика Карелия.xlsx";
             var preResult = new List<RegionStatisticsExcelItem>();
             var result = new List<RegionStatisticsDto>();
 
             using (var package = new ExcelPackage(path))
             {
-                worksheet = package.Workbook.Worksheets[0];
+                var worksheet = package.Workbook.Worksheets[0];
 
                 foreach (var year in years)
                 {

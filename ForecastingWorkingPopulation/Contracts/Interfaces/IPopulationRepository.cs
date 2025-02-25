@@ -7,6 +7,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
     {
         public List<RegionStatisticsDto> GetPopulationInRegion(int regionNumber);
         public List<RegionStatisticsDto> GetEconomyEmployedInRegion(int regionNumber);
+        public List<RegionInfoEntity> GetAllRegions();
         public void SaveEntityByRegion<TEntity>(int regionNumber, List<RegionStatisticsDto> dtos) where TEntity : BasePopulationEntity, new();
     }
 }
