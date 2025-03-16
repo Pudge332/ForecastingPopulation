@@ -31,10 +31,15 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             comboBox1 = new ComboBox();
             comboBox2 = new ComboBox();
+            chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)chart1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)chart2).BeginInit();
             SuspendLayout();
             // 
             // chart1
@@ -70,17 +75,36 @@
             comboBox2.Size = new Size(121, 23);
             comboBox2.TabIndex = 2;
             // 
+            // chart2
+            // 
+            chartArea2.Name = "ChartArea1";
+            chart2.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            chart2.Legends.Add(legend2);
+            chart2.Location = new Point(12, 481);
+            chart2.Name = "chart2";
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series2.Legend = "Legend1";
+            series2.Name = "Series2";
+            chart2.Series.Add(series2);
+            chart2.Size = new Size(1020, 522);
+            chart2.TabIndex = 3;
+            chart2.Text = "chart2";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2100, 1015);
+            Controls.Add(chart2);
             Controls.Add(comboBox2);
             Controls.Add(comboBox1);
             Controls.Add(chart1);
             Name = "MainForm";
             Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)chart1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)chart2).EndInit();
             ResumeLayout(false);
         }
 
@@ -89,5 +113,6 @@
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private ComboBox comboBox1;
         private ComboBox comboBox2;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
     }
 }

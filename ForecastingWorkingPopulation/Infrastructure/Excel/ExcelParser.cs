@@ -1,9 +1,12 @@
 ﻿using ForecastingWorkingPopulation.Contracts.Interfaces;
+using ForecastingWorkingPopulation.Database.Models;
+using ForecastingWorkingPopulation.Database.Repositories;
 using ForecastingWorkingPopulation.Models.Attributes;
 using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
 using ForecastingWorkingPopulation.Models.Excel;
 using OfficeOpenXml;
+using OfficeOpenXml.ConditionalFormatting.Contracts;
 using System.CodeDom;
 using System.ComponentModel;
 using System.Reflection;
@@ -51,6 +54,132 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
 
             CalculateByAge(result, males);
             CalculateByAge(result, females);
+
+            return result;
+        }
+
+        public List<RegionStatisticsDto> ParseBiluten(string path, string workSheetName, int columnOffset)
+        {
+            var defaultColumnNumber = 2;
+            var defaultStartRow = 10;
+
+            var preResult = new List<BilutenExcelItem>();
+            var result = new List<RegionStatisticsDto>();
+            var bilutenName = "Бюллетень";
+            var yearPos = path.IndexOf(bilutenName) + bilutenName.Length + 1;
+            var year = 0;
+            var parseValue = 0;
+
+            if (!int.TryParse(path.Substring(yearPos, 4), out year))
+                return result;
+
+            using (var package = new ExcelPackage(path))
+            {
+                var worksheet = package.Workbook.Worksheets[workSheetName];
+
+                for (int rowNumber = defaultStartRow; !string.IsNullOrWhiteSpace(worksheet.Cells[rowNumber, defaultColumnNumber].Text); rowNumber++)
+                {
+                    if (worksheet.Cells[rowNumber, defaultColumnNumber]?.Text?.Contains('-') == true || !int.TryParse(worksheet.Cells[rowNumber, defaultColumnNumber]?.Text, out parseValue))
+                        continue;
+
+                    var item = new BilutenExcelItem();
+                    item.Year = year;
+                    foreach (var property in typeof(BilutenExcelItem).GetProperties())
+                    {
+                        var attribute = property.GetCustomAttribute<ExcelAttribute>();
+
+                        if (attribute != null)
+                            property.SetValue(item, ConvertToInt(worksheet.Cells[rowNumber, attribute.ColumnNumber + columnOffset].Value));
+                    }
+
+                    preResult.Add(item);
+                }
+            }
+
+            return ConvertFromBilutenToDto(preResult);
+        }
+
+        public List<RegionExcelItem> GetBulitenWorksheets(string path, ref BilutenType type)
+        {
+            var result = new List<RegionExcelItem>();
+            var regions = RegionRepository.GetRegions();
+            using (var package = new ExcelPackage(path))
+            {
+                var worksheets = package.Workbook.Worksheets;
+
+                foreach(var worksheet in worksheets)
+                {
+                    var currentRegion = TryGetCurrentRegion(worksheet, regions, ref type);
+
+                    if (currentRegion == null)
+                        continue;
+
+                    if (currentRegion != null)
+                        result.Add(new RegionExcelItem
+                        {
+                            Number = currentRegion.Number,
+                            WorkSheetName = worksheet.Name
+                        });
+                }
+            }
+
+            return result;
+        }
+
+        private RegionInfoEntity TryGetCurrentRegion(ExcelWorksheet worksheet, List<RegionInfoEntity> regions, ref BilutenType type)
+        {
+            var regionName = worksheet.Cells[4, 2]?.Value?.ToString()?.Trim()?.ToLower();
+            var currentRegion = new RegionInfoEntity();
+
+            if (regionName?.Contains('(') == false)
+            {
+                currentRegion = regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
+                if(currentRegion != null)
+                {
+                    type = BilutenType.Old;
+                    return currentRegion;
+                }
+            }
+
+            regionName = worksheet.Cells[2, 1]?.Value?.ToString()?.Trim()?.ToLower();
+            currentRegion = regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
+
+            if (currentRegion != null)
+                type = BilutenType.New;
+
+            return currentRegion;
+        }
+
+        private object ConvertToInt(object value)
+        {
+            var result = 0;
+            int.TryParse(value.ToString(), out result);
+
+            return result;
+        }
+
+        private List<RegionStatisticsDto> ConvertFromBilutenToDto(List<BilutenExcelItem> items)
+        {
+            var result = new List<RegionStatisticsDto>();
+
+            foreach(var item in items)
+            {
+                result.Add(new RegionStatisticsDto
+                {
+                    Age = item.Age,
+                    Year = item.Year,
+                    Gender = Gender.Male,
+                    SummaryByYear = item.MalesCount
+                });
+
+                result.Add(new RegionStatisticsDto
+                {
+                    Age = item.Age,
+                    Year = item.Year,
+                    Gender = Gender.Female,
+                    SummaryByYear = item.FemalesCount
+                });
+            }
 
             return result;
         }

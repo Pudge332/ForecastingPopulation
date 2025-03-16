@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace ForecastingWorkingPopulation.Models.Excel
 {
-    public class RegionStatisticsExcelItem : BaseExcelItem
+    public class RegionStatisticsExcelItem : BaseRegionStatisticExcelItem
     {
         /// <summary>
         /// Возраст

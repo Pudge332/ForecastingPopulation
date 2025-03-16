@@ -17,7 +17,8 @@ namespace ForecastingWorkingPopulation
         {
             ApplicationConfiguration.Initialize();
             SetDependecies();
-            Application.Run(new ParseExcelForm());
+            //Application.Run(new ParseExcelForm());
+            Application.Run(new MainForm());
         }
         //static void Main(string[] args) 
         //{

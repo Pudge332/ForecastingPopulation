@@ -41,11 +41,6 @@ namespace ForecastingWorkingPopulation
             comboBox2.SelectedIndexChanged += SmoothingComboBoxChanged;
         }
 
-        private void InitEconomyEnployedGraphs(GenderComboBox comboValue)
-        {
-            
-        }
-
         private void SmoothingComboBoxChanged(object sender, EventArgs e)
         {
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
@@ -59,7 +54,18 @@ namespace ForecastingWorkingPopulation
         private void PaintByGender(GenderComboBox genderComboValue, SmoothComboBox smoothComboValue)
         {
             chart1.Series.Clear();
-            var groupedByYear = _populationRepository.GetEconomyEmployedInRegion(10)
+            chart2.Series.Clear();
+
+            var economyEmploedDtos = _populationRepository.GetEconomyEmployedInRegion(10);
+            var populationDtos = _populationRepository.GetPopulationInRegion(10);
+
+            PaintChartData(economyEmploedDtos, genderComboValue, smoothComboValue, chart1);
+            PaintChartData(populationDtos, genderComboValue, smoothComboValue, chart2);
+        }
+
+        private void PaintChartData(List<RegionStatisticsDto> dtos, GenderComboBox genderComboValue, SmoothComboBox smoothComboValue, Chart currentChart)
+        {
+            var groupedByYear = dtos
                 .GroupBy(dto => dto.Year);
 
             foreach (var group in groupedByYear)
@@ -71,11 +77,11 @@ namespace ForecastingWorkingPopulation
                     yValues = MovingAverageSmoothing(yValues, windowSize: 5, (int)smoothComboValue);
 
                 var series = _linearGraphPainter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
-                chart1.Series.Add(series);
+                currentChart.Series.Add(series);
             }
 
-            chart1.ChartAreas[0].AxisX.Title = "Возраст";
-            chart1.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+            currentChart.ChartAreas[0].AxisX.Title = "Возраст";
+            currentChart.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
         }
 
         private IEnumerable<RegionStatisticsDto> SelectByGender(GenderComboBox comboValue, IEnumerable<RegionStatisticsDto> dtos)
@@ -83,7 +89,7 @@ namespace ForecastingWorkingPopulation
             switch(comboValue)
             {
                 case GenderComboBox.All:
-                    return dtos;
+                    return GetAll(dtos.ToList());
 
                 case GenderComboBox.Males:
                     return dtos.Where(dto => dto.Gender == Gender.Male);
@@ -93,6 +99,26 @@ namespace ForecastingWorkingPopulation
             }
 
             return Enumerable.Empty<RegionStatisticsDto>();
+        }
+
+        private IEnumerable<RegionStatisticsDto> GetAll(List<RegionStatisticsDto> dtos)
+        {
+            var summaryByGenderDtos = new List<RegionStatisticsDto>();
+            var ages = dtos.Select(dto => dto.Age).Distinct();
+            foreach(var age in ages)
+            {
+                var dtosByAge = dtos.Where(dto => dto.Age == age);
+                summaryByGenderDtos.Add(new RegionStatisticsDto
+                {
+                    Age = age,
+                    Year = dtosByAge.First().Year,
+                    SummaryByYear = dtosByAge
+                        .DefaultIfEmpty()
+                        .Sum(dto => dto?.SummaryByYear) ?? 0
+                });
+            }
+
+            return summaryByGenderDtos.Cast<RegionStatisticsDto>();
         }
 
         private List<double> MovingAverageSmoothing(List<double> data, int windowSize, int smoothingCount = 1)

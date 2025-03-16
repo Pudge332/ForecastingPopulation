@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace ForecastingWorkingPopulation.Models.Excel
 {
-    public class BaseExcelItem
+    public class BaseRegionStatisticExcelItem
     {
         /// <summary>
         /// Количество из таблицы
