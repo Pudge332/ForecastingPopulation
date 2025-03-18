@@ -18,7 +18,8 @@ namespace ForecastingWorkingPopulation
             ApplicationConfiguration.Initialize();
             SetDependecies();
             //Application.Run(new ParseExcelForm());
-            Application.Run(new MainForm());
+            //Application.Run(new MainForm());
+            Application.Run(new LifeExpectancyCoefficientForm());
         }
         //static void Main(string[] args) 
         //{
