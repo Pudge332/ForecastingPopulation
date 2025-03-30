@@ -9,6 +9,7 @@ using ForecastingWorkingPopulation.Extensions;
 using System.Data;
 using System.Drawing;
 using System.Reflection;
+using System.Windows.Forms;
 
 namespace ForecastingWorkingPopulation
 {
@@ -72,6 +73,7 @@ namespace ForecastingWorkingPopulation
         // Выбор файла для региона
         private void SelectFileForRegion(int regionId)
         {
+            openFileDialog1.Multiselect = false;
             // Настройка диалога выбора файла
             openFileDialog1.Filter = "Excel Files|*.xls;*.xlsx";
             openFileDialog1.Title = "Выберите файл Excel";
@@ -96,7 +98,7 @@ namespace ForecastingWorkingPopulation
                 _populationRepository.SavePermanentPopulationEntyties(regionId, dtos);
 
             if (withMessage)
-                MessageBox.Show($"Данные для региона с ID {regionId} ({dataType}) успешно сохранены. Количество строк {dtos.Count}");
+                NotificationForm.ShowSuccess($"Данные для региона с ID {regionId} ({dataType}) успешно сохранены. Количество строк {dtos.Count}");
         }
 
         private List<RegionStatisticsDto> ParseRegionStatistic(string filePath)
@@ -113,19 +115,46 @@ namespace ForecastingWorkingPopulation
             var columnOffset = bilutenType.GetCustomAttribute<BilutenTypeAttribute>().AgeColumnOffset;
             regionCount = bilutenWorksheets.Count;
 
-            foreach (var currentRegion in bilutenWorksheets)
+            // Настраиваем ProgressBar
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 100;
+            progressBar1.Value = 0;
+            progressBar1.Visible = true;
+
+            for (int i = 0; i < bilutenWorksheets.Count; i++)
             {
+                var currentRegion = bilutenWorksheets[i];
                 var dtos = _excelParser.ParseBiluten(filePath, currentRegion.WorkSheetName, columnOffset);
                 rowsCount += dtos.Count;
 
                 SaveDataToDatabase(currentRegion.Number, "Постоянное население", dtos, false);
+
+                // Обновляем прогресс
+                UpdateProgressBar((i + 1) * 100 / bilutenWorksheets.Count);
             }
+
+            // Скрываем ProgressBar после завершения
+            progressBar1.Visible = false;
 
             return (regionCount, rowsCount);
         }
 
+        // Метод для обновления ProgressBar
+        private void UpdateProgressBar(int percentComplete)
+        {
+            if (percentComplete < progressBar1.Minimum)
+                percentComplete = progressBar1.Minimum;
+            if (percentComplete > progressBar1.Maximum)
+                percentComplete = progressBar1.Maximum;
+
+            progressBar1.Value = percentComplete;
+            progressBar1.Update();
+            Application.DoEvents(); // Позволяет обновить интерфейс во время выполнения операции
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
+            openFileDialog1.Multiselect = true;
             var rowsCount = 0;
             var regionCount = 0;
 
@@ -135,12 +164,22 @@ namespace ForecastingWorkingPopulation
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                string filePath = openFileDialog1.FileName;
+                var filePaths = openFileDialog1.FileNames;
 
-                (regionCount, rowsCount) = ParseBiluten(filePath);
+                foreach (var filePath in filePaths)
+                {
+                    (regionCount, rowsCount) = ParseBiluten(filePath);
+
+                    if (regionCount > 0)
+                        NotificationForm.ShowSuccess($"По {regionCount} регионам успешно загруженно {rowsCount} строк из файла {GetFileName(filePath)}");
+                }
             }
+        }
 
-            MessageBox.Show($"По {regionCount} регионам успешно загруженно {rowsCount} строк");
+        private string GetFileName(string path)
+        {
+            var pathShards = path.Split('\\');
+            return pathShards.Last();
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)

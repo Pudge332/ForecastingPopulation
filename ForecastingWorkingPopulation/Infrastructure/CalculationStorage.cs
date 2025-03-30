@@ -50,6 +50,11 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return regionStatisticsData;
         }
 
+        public List<RegionStatisticsDto> GetRegionStatisticsValues()
+        {
+            return regionStatisticsData.Values.SelectMany(x => x).ToList();
+        }
+
         public List<int> GetAvailableYears()
         {
             return availableYears;
@@ -64,6 +69,14 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             get { return currentRegion; }
             set { currentRegion = value; }
+        }
+
+        private void RegionNumberChanged(int value)
+        {
+            if (CurrentRegion != value)
+                regionStatisticsData.Clear();
+
+            CurrentRegion = value;
         }
     }
 }

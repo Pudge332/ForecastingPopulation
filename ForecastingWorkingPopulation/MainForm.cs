@@ -12,6 +12,7 @@ namespace ForecastingWorkingPopulation
     {
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _linearGraphPainter;
+        private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
 
         public MainForm()
@@ -24,8 +25,51 @@ namespace ForecastingWorkingPopulation
 
         private void InitForm()
         {
-            PaintByGender(GenderComboBox.All, SmoothComboBox.NO);
             InitComboboxes();
+            LoadSettings();
+            PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
+        }
+
+        private void LoadSettings()
+        {
+            _isSetting = true;
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = _populationRepository.GetRegionMainFormSettings(regionId);
+            if (settings != null)
+            {
+                // Загружаем настройки
+                comboBox1.SelectedIndex = settings.SelectedGender;
+                comboBox2.SelectedIndex = settings.SelectedSmoothing;
+                windowSizeNumericUpDown.Value = settings.WindowSize;
+                _windowSize = settings.WindowSize;
+            }
+            _isSetting = false;
+        }
+
+        private void SaveSettings()
+        {
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = new ForecastingWorkingPopulation.Database.Models.RegionMainFormSettingsEntity
+            {
+                RegionNumber = regionId,
+                SelectedGender = comboBox1.SelectedIndex,
+                SelectedSmoothing = comboBox2.SelectedIndex,
+                WindowSize = (int)windowSizeNumericUpDown.Value
+            };
+
+            _populationRepository.SaveRegionMainFormSettings(settings);
         }
 
         private void InitComboboxes()
@@ -53,18 +97,30 @@ namespace ForecastingWorkingPopulation
 
         private void SmoothingComboBoxChanged(object sender, EventArgs e)
         {
+            if (_isSetting)
+                return;
+
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
+            SaveSettings();
         }
 
         private void GenderComboBoxChanged(object sender, EventArgs e)
         {
+            if (_isSetting)
+                return;
+
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
+            SaveSettings();
         }
 
         private void WindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
+            if (_isSetting)
+                return;
+
             _windowSize = (int)windowSizeNumericUpDown.Value;
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
+            SaveSettings();
         }
 
         private void PaintByGender(GenderComboBox genderComboValue, SmoothComboBox smoothComboValue)
@@ -100,10 +156,11 @@ namespace ForecastingWorkingPopulation
                 var xValues = currentGroup.Select(dto => dto.Age).Select(Convert.ToDouble).ToList();
                 var yValues = currentGroup.Select(dto => dto.SummaryByYear).Select(Convert.ToDouble).ToList();
                 if ((int)smoothComboValue > 0)
-                    yValues = MovingAverageSmoothing(yValues, windowSize: _windowSize, (int)smoothComboValue);
+                    yValues = MovingAverageSmoothing(currentGroup, windowSize: _windowSize, (int)smoothComboValue);
 
                 var series = _linearGraphPainter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
                 currentChart.Series.Add(series);
+                CalculationStorage.Instance.StoreRegionStatistics(group.Key, currentGroup.ToList());
             }
 
             currentChart.ChartAreas[0].AxisX.Title = "Возраст";
@@ -147,31 +204,34 @@ namespace ForecastingWorkingPopulation
             return summaryByGenderDtos.Cast<RegionStatisticsDto>();
         }
 
-        private List<double> MovingAverageSmoothing(List<double> data, int windowSize, int smoothingCount = 1)
+        private List<double> MovingAverageSmoothing(IEnumerable<RegionStatisticsDto> data, int windowSize, int smoothingCount = 1)
         {
-            var result = new List<double>(data);
+            var result = new List<RegionStatisticsDto>(data);
+            foreach (var item in data)
+                item.SummaryByYearSmoothed = item.SummaryByYear;
 
             for (int i = 0; i < smoothingCount; i++)
                 result = MovingAverageSmoothing(result, windowSize);
 
-            return result;
+            return result.Select(dto => dto.SummaryByYearSmoothed).ToList();
         }
 
-        private List<double> MovingAverageSmoothing(List<double> data, int windowSize)
+        private List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
         {
-            var result = new List<double>();
-
             for (int i = 0; i < data.Count - windowSize; i++)
-                result.Add(GetSumInRange(data, i, i + windowSize) / windowSize);
+            {
+                var smoothingValue = GetSumInRange(data, i, i + windowSize) / windowSize;
+                data[i].SummaryByYearSmoothed = smoothingValue;
+            }
 
-            return result;
+            return data;
         }
 
-        private double GetSumInRange(List<double> data, int startIndex, int endIndex)
+        private double GetSumInRange(List<RegionStatisticsDto> data, int startIndex, int endIndex)
         {
             var result = 0.0;
             for (int i = startIndex; i < endIndex; i++)
-                result += data[i];
+                result += data[i].SummaryByYearSmoothed;
 
             return result;
         }

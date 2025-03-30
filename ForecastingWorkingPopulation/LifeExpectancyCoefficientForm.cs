@@ -30,6 +30,10 @@ namespace ForecastingWorkingPopulation
             if (regionId <= 0)
                 regionId = 10;
 
+            // Загружаем настройки коэффициентов для текущего региона
+
+            CalculateAndPaintCoefficent(regionId);
+            LoadRegionCoefficientSettings(regionId);
             CalculateAndPaintCoefficent(regionId);
         }
 
@@ -41,7 +45,6 @@ namespace ForecastingWorkingPopulation
             label4.Text = "Максимальный возраст";
             numericUpDown2.Value = _minAge;
             numericUpDown3.Value = _maxAge;
-            CreateYearControls();
         }
 
         private void CalculateAndPaintCoefficent(int regionNumber)
@@ -51,7 +54,7 @@ namespace ForecastingWorkingPopulation
             chartArea.AxisY.Maximum = 1.5;
             var ages = new List<double>();
             var coefficentDtos = new List<RegionCoefficentDto>();
-            var dtos = _populationRepository.GetPopulationInRegion(regionNumber);
+            var dtos = new List<RegionStatisticsDto>(CalculationStorage.Instance.GetRegionStatisticsValues());
             var years = dtos.Select(dto => dto.Year).Distinct().OrderBy(x => x);
 
             // Обновляем заголовок формы, чтобы показать текущий регион
@@ -187,10 +190,10 @@ namespace ForecastingWorkingPopulation
             foreach (var currentYearDto in currentYearDtos)
             {
                 var nextYearDto = nextYearDtos.FirstOrDefault(dto => dto.Age == currentYearDto.Age + 1 && dto.Gender == currentYearDto.Gender);
-                if (currentYearDto.SummaryByYear < 1 || nextYearDto == null)
+                if (currentYearDto.SummaryByYearSmoothed < 1 || nextYearDto == null)
                     continue;
 
-                var coefficent = (double)nextYearDto.SummaryByYear / currentYearDto.SummaryByYear;
+                var coefficent = (double)nextYearDto.SummaryByYearSmoothed / currentYearDto.SummaryByYearSmoothed;
 
                 if (coefficent > maxCoefficent)
                     coefficent = maxCoefficent;
@@ -212,12 +215,77 @@ namespace ForecastingWorkingPopulation
 
         }
 
+        private void LoadRegionCoefficientSettings(int regionNumber)
+        {
+            var settings = _populationRepository.GetRegionCoefficientSettings(regionNumber);
+            if (settings == null)
+                return;
+
+            // Устанавливаем значения из настроек
+            _minAge = settings.MinAge;
+            _maxAge = settings.MaxAge;
+            numericUpDown1.Value = settings.CoefficientLimit;
+            checkBox1.Checked = settings.DisableCoefficientCutoff;
+            numericUpDown2.Value = settings.MinAge;
+            numericUpDown3.Value = settings.MaxAge;
+
+            // Устанавливаем коэффициенты для годов
+            if (_yearControls.ContainsKey(2019) && settings.Coefficient2019 >= 0)
+                _yearControls[2019].YearNumericUpDown.Value = (decimal)settings.Coefficient2019;
+            if (_yearControls.ContainsKey(2020) && settings.Coefficient2020 >= 0)
+                _yearControls[2020].YearNumericUpDown.Value = (decimal)settings.Coefficient2020;
+            if (_yearControls.ContainsKey(2021) && settings.Coefficient2021 >= 0)
+                _yearControls[2021].YearNumericUpDown.Value = (decimal)settings.Coefficient2021;
+            if (_yearControls.ContainsKey(2022) && settings.Coefficient2022 >= 0)
+                _yearControls[2022].YearNumericUpDown.Value = (decimal)settings.Coefficient2022;
+            if (_yearControls.ContainsKey(2023) && settings.Coefficient2023 >= 0)
+                _yearControls[2023].YearNumericUpDown.Value = (decimal)settings.Coefficient2023;
+            if (_yearControls.ContainsKey(2024) && settings.Coefficient2024 >= 0)
+                _yearControls[2024].YearNumericUpDown.Value = (decimal)settings.Coefficient2024;
+        }
+
+        private void SaveRegionCoefficientSettings(int regionNumber)
+        {
+            var settings = new ForecastingWorkingPopulation.Database.Models.RegionCoefficientSettingsEntity
+            {
+                RegionNumber = regionNumber,
+                MinAge = (int)numericUpDown2.Value,
+                MaxAge = (int)numericUpDown3.Value,
+                CoefficientLimit = numericUpDown1.Value,
+                DisableCoefficientCutoff = checkBox1.Checked
+            };
+
+            // Сохраняем коэффициенты для годов
+            if (_yearControls.ContainsKey(2019))
+                settings.Coefficient2019 = Convert.ToDouble(_yearControls[2019].YearNumericUpDown.Value);
+            if (_yearControls.ContainsKey(2020))
+                settings.Coefficient2020 = Convert.ToDouble(_yearControls[2020].YearNumericUpDown.Value);
+            if (_yearControls.ContainsKey(2021))
+                settings.Coefficient2021 = Convert.ToDouble(_yearControls[2021].YearNumericUpDown.Value);
+            if (_yearControls.ContainsKey(2022))
+                settings.Coefficient2022 = Convert.ToDouble(_yearControls[2022].YearNumericUpDown.Value);
+            if (_yearControls.ContainsKey(2023))
+                settings.Coefficient2023 = Convert.ToDouble(_yearControls[2023].YearNumericUpDown.Value);
+            if (_yearControls.ContainsKey(2024))
+                settings.Coefficient2024 = Convert.ToDouble(_yearControls[2024].YearNumericUpDown.Value);
+
+            _populationRepository.SaveRegionCoefficientSettings(settings);
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             _minAge = (int)numericUpDown2.Value;
             _maxAge = (int)numericUpDown3.Value;
 
-            CalculateAndPaintCoefficent(10);
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+            if (regionId <= 0)
+                regionId = 10;
+
+            // Сохраняем настройки коэффициентов
+            SaveRegionCoefficientSettings(regionId);
+
+            CalculateAndPaintCoefficent(regionId);
         }
 
         private class YearControl

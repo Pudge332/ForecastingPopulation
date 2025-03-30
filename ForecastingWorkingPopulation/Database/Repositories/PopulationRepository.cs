@@ -3,6 +3,8 @@ using ForecastingWorkingPopulation.Database.Context;
 using ForecastingWorkingPopulation.Database.Models;
 using ForecastingWorkingPopulation.Infrastructure.Comparers;
 using ForecastingWorkingPopulation.Models.Dto;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace ForecastingWorkingPopulation.Database.Repositories
 {
@@ -17,8 +19,7 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
         private void Init(PopulationContext dbContext)
         {
-            //dbContext.Database.EnsureDeleted();
-            dbContext.Database.EnsureCreated();
+            dbContext.Database.Migrate();
             FillRegions();
         }
 
@@ -149,6 +150,71 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
             var regions = RegionRepository.GetRegions();
             _dbContext.AddRange(regions);
+            _dbContext.SaveChanges();
+        }
+
+        public RegionCoefficientSettingsEntity? GetRegionCoefficientSettings(int regionNumber)
+        {
+            if (!_dbContext.RegionCoefficientSettings.Any())
+                return null;
+
+            return _dbContext.RegionCoefficientSettings
+                .FirstOrDefault(settings => settings.RegionNumber == regionNumber);
+        }
+
+        public void SaveRegionCoefficientSettings(RegionCoefficientSettingsEntity settings)
+        {
+            var existingSettings = GetRegionCoefficientSettings(settings.RegionNumber);
+
+            if (existingSettings != null)
+            {
+                // Обновляем существующие настройки
+                existingSettings.Coefficient2019 = settings.Coefficient2019;
+                existingSettings.Coefficient2020 = settings.Coefficient2020;
+                existingSettings.Coefficient2021 = settings.Coefficient2021;
+                existingSettings.Coefficient2022 = settings.Coefficient2022;
+                existingSettings.Coefficient2023 = settings.Coefficient2023;
+                existingSettings.Coefficient2024 = settings.Coefficient2024;
+                existingSettings.MinAge = settings.MinAge;
+                existingSettings.MaxAge = settings.MaxAge;
+                existingSettings.CoefficientLimit = settings.CoefficientLimit;
+                existingSettings.DisableCoefficientCutoff = settings.DisableCoefficientCutoff;
+            }
+            else
+            {
+                // Добавляем новые настройки
+                _dbContext.RegionCoefficientSettings.Add(settings);
+            }
+
+            _dbContext.SaveChanges();
+        }
+
+        public RegionMainFormSettingsEntity? GetRegionMainFormSettings(int regionNumber)
+        {
+            if (!_dbContext.RegionMainFormSettings.Any())
+                return null;
+
+            return _dbContext.RegionMainFormSettings
+                .FirstOrDefault(settings => settings.RegionNumber == regionNumber);
+        }
+
+        public void SaveRegionMainFormSettings(RegionMainFormSettingsEntity settings)
+        {
+            var existingSettings = GetRegionMainFormSettings(settings.RegionNumber);
+
+            if (existingSettings != null)
+            {
+                // Обновляем существующие настройки
+                existingSettings.SelectedGender = settings.SelectedGender;
+                existingSettings.SelectedSmoothing = settings.SelectedSmoothing;
+                existingSettings.WindowSize = settings.WindowSize;
+            }
+            else
+            {
+                // Добавляем новые настройки
+                _dbContext.RegionMainFormSettings.Add(settings);
+            }
+
             _dbContext.SaveChanges();
         }
     }

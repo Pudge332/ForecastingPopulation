@@ -1,4 +1,5 @@
 ﻿using ForecastingWorkingPopulation.Models.Enums;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ForecastingWorkingPopulation.Models.Dto
 {
@@ -17,6 +18,21 @@ namespace ForecastingWorkingPopulation.Models.Dto
         /// Колличество за год
         /// </summary>
         public int SummaryByYear { get; set; }
+        /// <summary>
+        /// Сглаженное значение
+        /// </summary>
+        private double _summaryByYearSmoothed;
+        public double SummaryByYearSmoothed 
+        { 
+            get 
+            { 
+                if (_summaryByYearSmoothed > 0) 
+                    return _summaryByYearSmoothed; 
+
+                return SummaryByYear; 
+            } 
+            set => _summaryByYearSmoothed = value; 
+        }
         /// <summary>
         /// Год
         /// </summary>
