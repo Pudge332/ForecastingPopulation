@@ -41,9 +41,9 @@
             ((System.ComponentModel.ISupportInitialize)chart1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)chart2).BeginInit();
             SuspendLayout();
-            // 
+            //
             // chart1
-            // 
+            //
             chartArea1.Name = "ChartArea1";
             chart1.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
@@ -58,25 +58,25 @@
             chart1.Size = new Size(1020, 463);
             chart1.TabIndex = 0;
             chart1.Text = "chart1";
-            // 
+            //
             // comboBox1
-            // 
+            //
             comboBox1.FormattingEnabled = true;
             comboBox1.Location = new Point(911, 452);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 1;
-            // 
+            //
             // comboBox2
-            // 
+            //
             comboBox2.FormattingEnabled = true;
             comboBox2.Location = new Point(911, 423);
             comboBox2.Name = "comboBox2";
             comboBox2.Size = new Size(121, 23);
             comboBox2.TabIndex = 2;
-            // 
+            //
             // chart2
-            // 
+            //
             chartArea2.Name = "ChartArea1";
             chart2.ChartAreas.Add(chartArea2);
             legend2.Name = "Legend1";
@@ -91,12 +91,47 @@
             chart2.Size = new Size(1020, 522);
             chart2.TabIndex = 3;
             chart2.Text = "chart2";
-            // 
+            //
+            // btnLifeExpectancy
+            //
+            btnLifeExpectancy = new Button();
+            btnLifeExpectancy.Location = new Point(911, 394);
+            btnLifeExpectancy.Name = "btnLifeExpectancy";
+            btnLifeExpectancy.Size = new Size(121, 23);
+            btnLifeExpectancy.TabIndex = 4;
+            btnLifeExpectancy.Text = "Коэффициенты";
+            btnLifeExpectancy.UseVisualStyleBackColor = true;
+            btnLifeExpectancy.Click += btnLifeExpectancy_Click;
+            //
+            // windowSizeNumericUpDown
+            //
+            windowSizeNumericUpDown = new NumericUpDown();
+            windowSizeNumericUpDown.Location = new Point(911, 365);
+            windowSizeNumericUpDown.Name = "windowSizeNumericUpDown";
+            windowSizeNumericUpDown.Size = new Size(121, 23);
+            windowSizeNumericUpDown.TabIndex = 5;
+            windowSizeNumericUpDown.Minimum = 1;
+            windowSizeNumericUpDown.Maximum = 12;
+            windowSizeNumericUpDown.Value = 5;
+            windowSizeNumericUpDown.ValueChanged += WindowSizeNumericUpDown_ValueChanged;
+            //
+            // windowSizeLabel
+            //
+            windowSizeLabel = new Label();
+            windowSizeLabel.AutoSize = true;
+            windowSizeLabel.Location = new Point(911, 347);
+            windowSizeLabel.Name = "windowSizeLabel";
+            windowSizeLabel.Size = new Size(121, 15);
+            windowSizeLabel.TabIndex = 6;
+            windowSizeLabel.Text = "Размер окна";
             // MainForm
-            // 
+            //
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2100, 1015);
+            Controls.Add(windowSizeLabel);
+            Controls.Add(windowSizeNumericUpDown);
+            Controls.Add(btnLifeExpectancy);
             Controls.Add(chart2);
             Controls.Add(comboBox2);
             Controls.Add(comboBox1);
@@ -114,5 +149,8 @@
         private ComboBox comboBox1;
         private ComboBox comboBox2;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
+        private Button btnLifeExpectancy;
+        private NumericUpDown windowSizeNumericUpDown;
+        private Label windowSizeLabel;
     }
 }

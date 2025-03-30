@@ -16,7 +16,6 @@ namespace ForecastingWorkingPopulation
     {
         private readonly IExcelParser _excelParser;
         private readonly IPopulationRepository _populationRepository;
-        private string _dataType = "Постоянное население";
 
         // Таблица для хранения списка регионов
         private DataTable _regionsTable;
@@ -32,8 +31,6 @@ namespace ForecastingWorkingPopulation
         // Загрузка формы
         private void Init()
         {
-            checkBox1.Checked = false;
-            label1.Text = _dataType;
             LoadRegions();
         }
 
@@ -62,10 +59,13 @@ namespace ForecastingWorkingPopulation
                 string lastUpdate = selectedRow.Cells["Дата последнего изменения"].Value.ToString();
                 int regionId = (int)selectedRow.Cells["Номер региона"].Value;
 
-                MessageBox.Show($"Выбран регион: {regionName}\nПоследнее обновление: {lastUpdate}\nНомер региона: {regionId}");
-
-                // Выбор файла для региона
-                SelectFileForRegion(regionId);
+                // Открываем форму выбора действия
+                var actionForm = new RegionActionForm(regionId, regionName);
+                if (actionForm.ShowDialog() == DialogResult.OK)
+                {
+                    // Если пользователь выбрал "Выбрать файл для региона"
+                    SelectFileForRegion(regionId);
+                }
             }
         }
 
@@ -83,7 +83,7 @@ namespace ForecastingWorkingPopulation
                 string filePath = openFileDialog1.FileName;
 
                 dtos = ParseRegionStatistic(filePath);
-                SaveDataToDatabase(regionId, _dataType, dtos, true);
+                SaveDataToDatabase(regionId, "Население в экономике", dtos, true);
 
             }
         }
@@ -147,8 +147,6 @@ namespace ForecastingWorkingPopulation
         {
             var boxChecked = "Население в экономике";
             var boxUnChecked = "Постоянное население";
-            _dataType = checkBox1.Checked ? boxChecked : boxUnChecked;
-            label1.Text = _dataType;
         }
     }
 }

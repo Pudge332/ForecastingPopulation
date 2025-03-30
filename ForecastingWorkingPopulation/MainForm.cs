@@ -1,5 +1,6 @@
 ﻿using ForecastingWorkingPopulation.Contracts.Interfaces;
 using ForecastingWorkingPopulation.Database.Repositories;
+using ForecastingWorkingPopulation.Infrastructure;
 using ForecastingWorkingPopulation.Infrastructure.GraphPainting;
 using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
@@ -11,10 +12,12 @@ namespace ForecastingWorkingPopulation
     {
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _linearGraphPainter;
+        private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
+
         public MainForm()
         {
             InitializeComponent();
-            _populationRepository = new PopulationRepository(); 
+            _populationRepository = new PopulationRepository();
             _linearGraphPainter = new LinearGraphPainter();
             InitForm();
         }
@@ -41,6 +44,13 @@ namespace ForecastingWorkingPopulation
             comboBox2.SelectedIndexChanged += SmoothingComboBoxChanged;
         }
 
+        private void btnLifeExpectancy_Click(object sender, EventArgs e)
+        {
+            // Открываем форму коэффициентов ожидаемой продолжительности жизни
+            var lifeExpectancyForm = new LifeExpectancyCoefficientForm();
+            lifeExpectancyForm.Show();
+        }
+
         private void SmoothingComboBoxChanged(object sender, EventArgs e)
         {
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
@@ -51,13 +61,29 @@ namespace ForecastingWorkingPopulation
             PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
         }
 
+        private void WindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            _windowSize = (int)windowSizeNumericUpDown.Value;
+            PaintByGender((GenderComboBox)comboBox1.SelectedIndex, (SmoothComboBox)comboBox2.SelectedIndex);
+        }
+
         private void PaintByGender(GenderComboBox genderComboValue, SmoothComboBox smoothComboValue)
         {
             chart1.Series.Clear();
             chart2.Series.Clear();
 
-            var economyEmploedDtos = _populationRepository.GetEconomyEmployedInRegion(10);
-            var populationDtos = _populationRepository.GetPopulationInRegion(10);
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var economyEmploedDtos = _populationRepository.GetEconomyEmployedInRegion(regionId);
+            var populationDtos = _populationRepository.GetPopulationInRegion(regionId);
+
+            // Обновляем заголовок формы, чтобы показать текущий регион
+            this.Text = $"Анализ данных региона (ID: {regionId})";
 
             PaintChartData(economyEmploedDtos, genderComboValue, smoothComboValue, chart1);
             PaintChartData(populationDtos, genderComboValue, smoothComboValue, chart2);
@@ -74,7 +100,7 @@ namespace ForecastingWorkingPopulation
                 var xValues = currentGroup.Select(dto => dto.Age).Select(Convert.ToDouble).ToList();
                 var yValues = currentGroup.Select(dto => dto.SummaryByYear).Select(Convert.ToDouble).ToList();
                 if ((int)smoothComboValue > 0)
-                    yValues = MovingAverageSmoothing(yValues, windowSize: 5, (int)smoothComboValue);
+                    yValues = MovingAverageSmoothing(yValues, windowSize: _windowSize, (int)smoothComboValue);
 
                 var series = _linearGraphPainter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
                 currentChart.Series.Add(series);
