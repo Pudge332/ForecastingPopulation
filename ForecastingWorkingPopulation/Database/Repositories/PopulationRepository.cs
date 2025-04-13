@@ -217,5 +217,36 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
             _dbContext.SaveChanges();
         }
+
+        public RegionEconomyEmploedFormSettingsEntity? GetRegionEconomyEmploedFormSettings(int regionNumber)
+        {
+            if (!_dbContext.RegionEconomyEmploedFormSettings.Any())
+                return null;
+
+            return _dbContext.RegionEconomyEmploedFormSettings
+                .FirstOrDefault(settings => settings.RegionNumber == regionNumber);
+        }
+
+        public void SaveRegionEconomyEmploedFormSettings(RegionEconomyEmploedFormSettingsEntity settings)
+        {
+            var existingSettings = GetRegionEconomyEmploedFormSettings(settings.RegionNumber);
+
+            if (existingSettings != null)
+            {
+                // Обновляем существующие настройки
+                existingSettings.SelectedGender = settings.SelectedGender;
+                existingSettings.SelectedSmoothing = settings.SelectedSmoothing;
+                existingSettings.WindowSize = settings.WindowSize;
+                existingSettings.InEconomySelectedSmoothing = settings.InEconomySelectedSmoothing;
+                existingSettings.InEconomyWindowSize = settings.InEconomyWindowSize;
+            }
+            else
+            {
+                // Добавляем новые настройки
+                _dbContext.RegionEconomyEmploedFormSettings.Add(settings);
+            }
+
+            _dbContext.SaveChanges();
+        }
     }
 }

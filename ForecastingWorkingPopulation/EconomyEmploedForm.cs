@@ -24,6 +24,7 @@ namespace ForecastingWorkingPopulation
 
             InitializeComponent();
             InitControls();
+            LoadSettings();
 
             var regionId = CalculationStorage.Instance.CurrentRegion;
             var data = _repository.GetEconomyEmployedInRegion(regionId);
@@ -76,12 +77,14 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             UpdateSmoothChart();
+            SaveSettings();
         }
 
         private void SmoothingComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_isSetting) return;
             UpdateSmoothChart();
+            SaveSettings();
         }
 
         private void WindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -89,6 +92,7 @@ namespace ForecastingWorkingPopulation
             if (_isSetting) return;
             _windowSize = (int)windowSizeNumericUpDown.Value;
             UpdateSmoothChart();
+            SaveSettings();
         }
 
         private void UpdateSmoothChart()
@@ -116,6 +120,7 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             UpdateInEconomyLevelSmoothChart();
+            SaveSettings();
         }
 
         private void InEconomyWindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -123,6 +128,73 @@ namespace ForecastingWorkingPopulation
             if (_isSetting) return;
             _inEconomyWindowSize = (int)((NumericUpDown)sender).Value;
             UpdateInEconomyLevelSmoothChart();
+            SaveSettings();
+        }
+
+        private void LoadSettings()
+        {
+            _isSetting = true;
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = _repository.GetRegionEconomyEmploedFormSettings(regionId);
+            if (settings != null)
+            {
+                // Загружаем настройки
+                genderComboBox.SelectedIndex = settings.SelectedGender;
+                smoothingComboBox.SelectedIndex = settings.SelectedSmoothing;
+                windowSizeNumericUpDown.Value = settings.WindowSize;
+                _windowSize = settings.WindowSize;
+
+                inEconomySmoothingComboBox.SelectedIndex = settings.InEconomySelectedSmoothing;
+                inEconomyWindowSizeNumericUpDown.Value = settings.InEconomyWindowSize;
+                _inEconomyWindowSize = settings.InEconomyWindowSize;
+
+                // Устанавливаем максимальные значения для осей Y графиков, если они были сохранены
+                if (settings.EconomyEmploedMaxY > 0)
+                    economyEmploed.ChartAreas[0].AxisY.Maximum = settings.EconomyEmploedMaxY;
+
+                if (settings.EconomyEmploedSmoothMaxY > 0)
+                    economyEmploedSmooth.ChartAreas[0].AxisY.Maximum = settings.EconomyEmploedSmoothMaxY;
+
+                if (settings.InEconomyLevelMaxY > 0)
+                    inEconomyLevel.ChartAreas[0].AxisY.Maximum = settings.InEconomyLevelMaxY;
+
+                if (settings.InEconomyLevelSmoothMaxY > 0)
+                    inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum = settings.InEconomyLevelSmoothMaxY;
+            }
+            _isSetting = false;
+        }
+
+        private void SaveSettings()
+        {
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = new ForecastingWorkingPopulation.Database.Models.RegionEconomyEmploedFormSettingsEntity
+            {
+                RegionNumber = regionId,
+                SelectedGender = genderComboBox.SelectedIndex,
+                SelectedSmoothing = smoothingComboBox.SelectedIndex,
+                WindowSize = (int)windowSizeNumericUpDown.Value,
+                InEconomySelectedSmoothing = inEconomySmoothingComboBox.SelectedIndex,
+                InEconomyWindowSize = (int)inEconomyWindowSizeNumericUpDown.Value,
+                // Сохраняем максимальные значения для осей Y графиков
+                EconomyEmploedMaxY = economyEmploed.ChartAreas[0].AxisY.Maximum,
+                EconomyEmploedSmoothMaxY = economyEmploedSmooth.ChartAreas[0].AxisY.Maximum,
+                InEconomyLevelMaxY = inEconomyLevel.ChartAreas[0].AxisY.Maximum,
+                InEconomyLevelSmoothMaxY = inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum
+            };
+
+            _repository.SaveRegionEconomyEmploedFormSettings(settings);
         }
 
         private void UpdateInEconomyLevelSmoothChart()
@@ -227,11 +299,37 @@ namespace ForecastingWorkingPopulation
             // Добавляем серии на график
             inEconomyLevelSmooth.Series.Add(malesSeries);
             inEconomyLevelSmooth.Series.Add(femalesSeries);
-        
+
 
             // Настраиваем оси
             inEconomyLevelSmooth.ChartAreas[0].AxisX.Title = "Возраст";
             inEconomyLevelSmooth.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике (сглаживание)";
+
+            // Устанавливаем максимальное значение по оси Y
+            double maxY = Math.Max(
+                maleCoefficients.Count > 0 ? maleCoefficients.Max(c => c.SummaryByYearSmoothed) : 0,
+                femaleCoefficients.Count > 0 ? femaleCoefficients.Max(c => c.SummaryByYearSmoothed) : 0
+            );
+            SetYAxisMaximum(inEconomyLevelSmooth, maxY, "InEconomyLevelSmoothMaxY");
+
+            // Сохраняем данные в CalculationStorage
+            var maleCoefficientsData = maleCoefficients.Select(c => new RegionInEconomyLevelDto
+            {
+                Age = c.Age,
+                Gender = c.Gender,
+                Level = c.SummaryByYearSmoothed
+            }).ToList();
+
+            var femaleCoefficientsData = femaleCoefficients.Select(c => new RegionInEconomyLevelDto
+            {
+                Age = c.Age,
+                Gender = c.Gender,
+                Level = c.SummaryByYearSmoothed
+            }).ToList();
+            femaleCoefficientsData.AddRange(maleCoefficientsData);
+
+            // Сохраняем данные в хранилище
+            CalculationStorage.Instance.StoreInEconomySmoothedLevel(femaleCoefficientsData);
         }
 
         private List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
@@ -254,6 +352,72 @@ namespace ForecastingWorkingPopulation
             return result;
         }
 
+        /// <summary>
+        /// Устанавливает максимальное значение по оси Y для графика на основе данных серий
+        /// </summary>
+        private void SetChartYAxisMaximum(Chart chart, List<ChartDataService.SeriesData> data, string settingPropertyName)
+        {
+            // Находим максимальное значение Y среди всех серий
+            double maxY = 0;
+            foreach (var seriesData in data)
+            {
+                if (seriesData.YValues.Count > 0)
+                {
+                    double seriesMaxY = seriesData.YValues.Max();
+                    maxY = Math.Max(maxY, seriesMaxY);
+                }
+            }
+
+            // Устанавливаем максимальное значение оси Y с запасом 35%
+            SetYAxisMaximum(chart, maxY, settingPropertyName);
+        }
+
+        /// <summary>
+        /// Устанавливает максимальное значение по оси Y для графика с запасом 35%
+        /// </summary>
+        private void SetYAxisMaximum(Chart chart, double maxY, string settingPropertyName)
+        {
+            // Получаем текущие настройки
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+            if (regionId <= 0) regionId = 10;
+
+            var settings = _repository.GetRegionEconomyEmploedFormSettings(regionId);
+            double savedMaxY = 0;
+
+            // Получаем сохраненное максимальное значение, если оно есть
+            if (settings != null)
+            {
+                switch (settingPropertyName)
+                {
+                    case "EconomyEmploedMaxY":
+                        savedMaxY = settings.EconomyEmploedMaxY;
+                        break;
+                    case "EconomyEmploedSmoothMaxY":
+                        savedMaxY = settings.EconomyEmploedSmoothMaxY;
+                        break;
+                    case "InEconomyLevelMaxY":
+                        savedMaxY = settings.InEconomyLevelMaxY;
+                        break;
+                    case "InEconomyLevelSmoothMaxY":
+                        savedMaxY = settings.InEconomyLevelSmoothMaxY;
+                        break;
+                }
+            }
+
+            // Увеличиваем максимальное значение на 35%
+            double newMaxY = maxY * 1.35;
+
+            // Используем большее из сохраненного и нового значения
+            double finalMaxY = Math.Max(newMaxY, savedMaxY);
+
+            // Устанавливаем максимальное значение оси Y
+            if (finalMaxY > 0)
+            {
+                chart.ChartAreas[0].AxisY.Maximum = finalMaxY;
+                chart.ChartAreas[0].RecalculateAxesScale();
+            }
+        }
+
         private void PaintCharts(List<ChartDataService.SeriesData> data)
         {
             #region Занятые в экономике без сглаживания
@@ -266,7 +430,26 @@ namespace ForecastingWorkingPopulation
 
             economyEmploed.ChartAreas[0].AxisX.Title = "Возраст";
             economyEmploed.ChartAreas[0].AxisY.Title = "Занятые в экономике";
+
+            // Устанавливаем максимальное значение по оси Y
+            SetChartYAxisMaximum(economyEmploed, data, "EconomyEmploedMaxY");
             #endregion
+
+            // Сохраняем данные в CalculationStorage
+            foreach (var seriesData in data)
+            {
+                var statisticsData = new List<RegionStatisticsDto>();
+                for (int i = 0; i < seriesData.XValues.Count; i++)
+                {
+                    statisticsData.Add(new RegionStatisticsDto
+                    {
+                        Age = (int)seriesData.XValues[i],
+                        SummaryByYear = (int)seriesData.YValues[i],
+                        Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
+                    });
+                }
+                CalculationStorage.Instance.StoreRegionStatistics(int.Parse(seriesData.SeriesName), statisticsData);
+            }
         }
 
         private void PaintSmoothChart(List<ChartDataService.SeriesData> data)
@@ -281,7 +464,27 @@ namespace ForecastingWorkingPopulation
 
             economyEmploedSmooth.ChartAreas[0].AxisX.Title = "Возраст";
             economyEmploedSmooth.ChartAreas[0].AxisY.Title = "Занятые в экономике (сглаживание)";
+
+            // Устанавливаем максимальное значение по оси Y
+            SetChartYAxisMaximum(economyEmploedSmooth, data, "EconomyEmploedSmoothMaxY");
             #endregion
+
+            // Сохраняем данные в CalculationStorage
+            foreach (var seriesData in data)
+            {
+                var statisticsData = new List<RegionStatisticsDto>();
+                for (int i = 0; i < seriesData.XValues.Count; i++)
+                {
+                    statisticsData.Add(new RegionStatisticsDto
+                    {
+                        Age = (int)seriesData.XValues[i],
+                        SummaryByYear = (int)seriesData.YValues[i],
+                        SummaryByYearSmoothed = seriesData.YValues[i],
+                        Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
+                    });
+                }
+                CalculationStorage.Instance.StoreRegionStatisticsSmoothed(int.Parse(seriesData.SeriesName), statisticsData);
+            }
         }
 
         private void UpdateInEconomyLevelChart()
@@ -348,6 +551,29 @@ namespace ForecastingWorkingPopulation
             // Настраиваем оси
             inEconomyLevel.ChartAreas[0].AxisX.Title = "Возраст";
             inEconomyLevel.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике";
+
+            // Устанавливаем максимальное значение по оси Y
+            double maxY = 0;
+            if (coefficients.Any())
+            {
+                var maleMax = coefficients.Where(c => c.Gender == Gender.Male).Any() ?
+                    coefficients.Where(c => c.Gender == Gender.Male).Max(c => c.Coefficient) : 0;
+                var femaleMax = coefficients.Where(c => c.Gender == Gender.Female).Any() ?
+                    coefficients.Where(c => c.Gender == Gender.Female).Max(c => c.Coefficient) : 0;
+                maxY = Math.Max(maleMax, femaleMax);
+            }
+            SetYAxisMaximum(inEconomyLevel, maxY, "InEconomyLevelMaxY");
+
+            // Сохраняем данные в CalculationStorage
+            var coefficientsData = coefficients.Select(c => new RegionInEconomyLevelDto
+            {
+                Age = c.Age,
+                Gender = c.Gender,
+                Level = c.Coefficient
+            }).ToList();
+
+            // Сохраняем данные в хранилище
+            CalculationStorage.Instance.StoreInEconomyLevel(coefficientsData);
 
             // Обновляем график со сглаживанием, но только если это вызвано из конструктора или из обработчиков событий элементов управления графика уровня занятости
             UpdateInEconomyLevelSmoothChart();

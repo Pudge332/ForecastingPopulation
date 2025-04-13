@@ -7,7 +7,10 @@ namespace ForecastingWorkingPopulation.Infrastructure
     {
         private static readonly CalculationStorage instance = new CalculationStorage();
         private List<RegionCoefficentDto> lifeExpectancyData;
+        private List<RegionInEconomyLevelDto> inEconomyLevelData;
+        private List<RegionInEconomyLevelDto> inEconomyLevelDataSmoothed;
         private Dictionary<int, List<RegionStatisticsDto>> regionStatisticsData;
+        private Dictionary<int, List<RegionStatisticsDto>> regionStatisticsDataSmoothed;
         private int currentRegion;
 
         private List<int> availableYears = new List<int>();
@@ -15,7 +18,9 @@ namespace ForecastingWorkingPopulation.Infrastructure
         private CalculationStorage()
         {
             lifeExpectancyData = new List<RegionCoefficentDto>();
+            inEconomyLevelData = new List<RegionInEconomyLevelDto>();
             regionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
+            regionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
         }
 
         public static CalculationStorage Instance
@@ -32,6 +37,22 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             return lifeExpectancyData;
         }
+
+        public void StoreInEconomyLevel(List<RegionInEconomyLevelDto> data)
+        {
+            inEconomyLevelData = new(data);
+        }
+
+        public List<RegionInEconomyLevelDto> GetInEconomyLevel() =>
+            inEconomyLevelData;
+
+        public void StoreInEconomySmoothedLevel(List<RegionInEconomyLevelDto> data)
+        {
+            inEconomyLevelDataSmoothed = new(data);
+        }
+
+        public List<RegionInEconomyLevelDto> GetInEconomyLevelSmoothed() =>
+            inEconomyLevelDataSmoothed;
 
         public void StoreRegionStatistics(int year, List<RegionStatisticsDto> data)
         {
@@ -53,6 +74,28 @@ namespace ForecastingWorkingPopulation.Infrastructure
         public List<RegionStatisticsDto> GetRegionStatisticsValues()
         {
             return regionStatisticsData.Values.SelectMany(x => x).ToList();
+        }
+
+        public void StoreRegionStatisticsSmoothed(int year, List<RegionStatisticsDto> data)
+        {
+            if (regionStatisticsDataSmoothed.ContainsKey(year))
+            {
+                regionStatisticsDataSmoothed[year] = data;
+            }
+            else
+            {
+                regionStatisticsDataSmoothed.Add(year, data);
+            }
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetRegionStatisticsDataSmoothed()
+        {
+            return regionStatisticsDataSmoothed;
+        }
+
+        public List<RegionStatisticsDto> GetRegionStatisticsValuesSmoothed()
+        {
+            return regionStatisticsDataSmoothed.Values.SelectMany(x => x).ToList();
         }
 
         public List<int> GetAvailableYears()

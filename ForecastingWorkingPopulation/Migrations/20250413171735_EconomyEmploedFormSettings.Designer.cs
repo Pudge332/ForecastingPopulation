@@ -3,6 +3,7 @@ using System;
 using ForecastingWorkingPopulation.Database.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ForecastingWorkingPopulation.Migrations
 {
     [DbContext(typeof(PopulationContext))]
-    partial class PopulationContextModelSnapshot : ModelSnapshot
+    [Migration("20250413171735_EconomyEmploedFormSettings")]
+    partial class EconomyEmploedFormSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
@@ -115,26 +118,6 @@ namespace ForecastingWorkingPopulation.Migrations
                     b.Property<int>("RegionNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<double>("EconomyEmploedMaxY")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("REAL")
-                        .HasDefaultValue(0.0);
-
-                    b.Property<double>("EconomyEmploedSmoothMaxY")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("REAL")
-                        .HasDefaultValue(0.0);
-
-                    b.Property<double>("InEconomyLevelMaxY")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("REAL")
-                        .HasDefaultValue(0.0);
-
-                    b.Property<double>("InEconomyLevelSmoothMaxY")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("REAL")
-                        .HasDefaultValue(0.0);
 
                     b.Property<int>("InEconomySelectedSmoothing")
                         .HasColumnType("INTEGER");
