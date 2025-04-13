@@ -1,6 +1,12 @@
-﻿using System;
+﻿using System.Runtime.CompilerServices;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
 using static OfficeOpenXml.ExcelErrorValue;
+
+[assembly: InternalsVisibleTo("Infrastructure.Tests")]
+[assembly: InternalsVisibleTo("Infrastructure.Tests.GraphPainting")]
 
 namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
 {
@@ -19,7 +25,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
 
             for(int i = 0; i < xValues.Count; i++)
                 series.Points.AddXY(xValues[i], yValues[i]);
-            
+
             return series;
         }
 
@@ -44,7 +50,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             return series;
         }
 
-        private Color GetRandomColor()
+        internal Color GetRandomColor()
         {
             var randomizer = new Random();
             var r = randomizer.Next(0, 255);
@@ -54,7 +60,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             return Color.FromArgb(255, r, b, b);
         }
 
-        private (List<T>, List<T>) FixLenght<T>(List<T> xValues, List<T> yValues)
+        internal (List<T>, List<T>) FixLenght<T>(List<T> xValues, List<T> yValues)
         {
             var resultX = new List<T>();
             var resultY = new List<T>();
