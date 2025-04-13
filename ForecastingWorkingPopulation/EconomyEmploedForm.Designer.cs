@@ -40,107 +40,246 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            chart3 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            chart4 = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            ((System.ComponentModel.ISupportInitialize)chart1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)chart2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)chart3).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)chart4).BeginInit();
+            economyEmploed = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            inEconomyLevelSmooth = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            inEconomySmoothingLabel = new Label();
+            inEconomyLevel = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            economyEmploedSmooth = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            genderComboBox = new ComboBox();
+            smoothingComboBox = new ComboBox();
+            windowSizeNumericUpDown = new NumericUpDown();
+            windowSizeLabel = new Label();
+            genderLabel = new Label();
+            smoothingLabel = new Label();
+            inEconomySmoothingComboBox = new ComboBox();
+            inEconomyWindowSizeNumericUpDown = new NumericUpDown();
+            inEconomyWindowSizeLabel = new Label();
+            label1 = new Label();
+            ((System.ComponentModel.ISupportInitialize)economyEmploed).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)inEconomyLevelSmooth).BeginInit();
+            inEconomyLevelSmooth.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)inEconomyLevel).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)economyEmploedSmooth).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)inEconomyWindowSizeNumericUpDown).BeginInit();
             SuspendLayout();
             // 
-            // chart1
+            // economyEmploed
             // 
             chartArea1.Name = "ChartArea1";
-            chart1.ChartAreas.Add(chartArea1);
+            economyEmploed.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
-            chart1.Legends.Add(legend1);
-            chart1.Location = new Point(12, 12);
-            chart1.Name = "chart1";
+            economyEmploed.Legends.Add(legend1);
+            economyEmploed.Location = new Point(3, 12);
+            economyEmploed.Name = "economyEmploed";
             series1.ChartArea = "ChartArea1";
             series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series1.Legend = "Legend1";
             series1.Name = "Series1";
-            chart1.Series.Add(series1);
-            chart1.Size = new Size(818, 406);
-            chart1.TabIndex = 0;
-            chart1.Text = "EconomyEmploed";
+            economyEmploed.Series.Add(series1);
+            economyEmploed.Size = new Size(818, 406);
+            economyEmploed.TabIndex = 0;
+            economyEmploed.Text = "EconomyEmploed";
             // 
-            // chart2
+            // inEconomyLevelSmooth
             // 
             chartArea2.Name = "ChartArea1";
-            chart2.ChartAreas.Add(chartArea2);
+            inEconomyLevelSmooth.ChartAreas.Add(chartArea2);
+            inEconomyLevelSmooth.Controls.Add(inEconomySmoothingLabel);
             legend2.Name = "Legend1";
-            chart2.Legends.Add(legend2);
-            chart2.Location = new Point(860, 424);
-            chart2.Name = "chart2";
+            inEconomyLevelSmooth.Legends.Add(legend2);
+            inEconomyLevelSmooth.Location = new Point(860, 424);
+            inEconomyLevelSmooth.Name = "inEconomyLevelSmooth";
             series2.ChartArea = "ChartArea1";
             series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series2.Legend = "Legend1";
             series2.Name = "Series1";
-            chart2.Series.Add(series2);
-            chart2.Size = new Size(858, 484);
-            chart2.TabIndex = 1;
-            chart2.Text = "InEconomyLevelSmooth";
+            inEconomyLevelSmooth.Series.Add(series2);
+            inEconomyLevelSmooth.Size = new Size(858, 484);
+            inEconomyLevelSmooth.TabIndex = 1;
+            inEconomyLevelSmooth.Text = "InEconomyLevelSmooth";
             // 
-            // chart3
+            // inEconomySmoothingLabel
+            // 
+            inEconomySmoothingLabel.AutoSize = true;
+            inEconomySmoothingLabel.Location = new Point(700, 482);
+            inEconomySmoothingLabel.Name = "inEconomySmoothingLabel";
+            inEconomySmoothingLabel.Size = new Size(81, 15);
+            inEconomySmoothingLabel.TabIndex = 12;
+            inEconomySmoothingLabel.Text = "Сглаживание";
+            // 
+            // inEconomyLevel
             // 
             chartArea3.Name = "ChartArea1";
-            chart3.ChartAreas.Add(chartArea3);
+            inEconomyLevel.ChartAreas.Add(chartArea3);
             legend3.Name = "Legend1";
-            chart3.Legends.Add(legend3);
-            chart3.Location = new Point(12, 424);
-            chart3.Name = "chart3";
+            inEconomyLevel.Legends.Add(legend3);
+            inEconomyLevel.Location = new Point(3, 424);
+            inEconomyLevel.Name = "inEconomyLevel";
             series3.ChartArea = "ChartArea1";
             series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series3.Legend = "Legend1";
             series3.Name = "Series1";
-            chart3.Series.Add(series3);
-            chart3.Size = new Size(818, 484);
-            chart3.TabIndex = 2;
-            chart3.Text = "InEconomyLevel";
+            inEconomyLevel.Series.Add(series3);
+            inEconomyLevel.Size = new Size(818, 484);
+            inEconomyLevel.TabIndex = 2;
+            inEconomyLevel.Text = "InEconomyLevel";
             // 
-            // chart4
+            // economyEmploedSmooth
             // 
             chartArea4.Name = "ChartArea1";
-            chart4.ChartAreas.Add(chartArea4);
+            economyEmploedSmooth.ChartAreas.Add(chartArea4);
             legend4.Name = "Legend1";
-            chart4.Legends.Add(legend4);
-            chart4.Location = new Point(860, 12);
-            chart4.Name = "chart4";
+            economyEmploedSmooth.Legends.Add(legend4);
+            economyEmploedSmooth.Location = new Point(860, 12);
+            economyEmploedSmooth.Name = "economyEmploedSmooth";
             series4.ChartArea = "ChartArea1";
             series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series4.Legend = "Legend1";
             series4.Name = "Series1";
-            chart4.Series.Add(series4);
-            chart4.Size = new Size(858, 406);
-            chart4.TabIndex = 3;
-            chart4.Text = "EconomyEmploedSmooth";
+            economyEmploedSmooth.Series.Add(series4);
+            economyEmploedSmooth.Size = new Size(858, 406);
+            economyEmploedSmooth.TabIndex = 3;
+            economyEmploedSmooth.Text = "economyEmploedSmooth";
+            // 
+            // genderComboBox
+            // 
+            genderComboBox.FormattingEnabled = true;
+            genderComboBox.Location = new Point(1583, 225);
+            genderComboBox.Name = "genderComboBox";
+            genderComboBox.Size = new Size(121, 23);
+            genderComboBox.TabIndex = 4;
+            // 
+            // smoothingComboBox
+            // 
+            smoothingComboBox.FormattingEnabled = true;
+            smoothingComboBox.Location = new Point(1583, 279);
+            smoothingComboBox.Name = "smoothingComboBox";
+            smoothingComboBox.Size = new Size(121, 23);
+            smoothingComboBox.TabIndex = 5;
+            // 
+            // windowSizeNumericUpDown
+            // 
+            windowSizeNumericUpDown.Location = new Point(1583, 334);
+            windowSizeNumericUpDown.Maximum = new decimal(new int[] { 12, 0, 0, 0 });
+            windowSizeNumericUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            windowSizeNumericUpDown.Name = "windowSizeNumericUpDown";
+            windowSizeNumericUpDown.Size = new Size(121, 23);
+            windowSizeNumericUpDown.TabIndex = 6;
+            windowSizeNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
+            // 
+            // windowSizeLabel
+            // 
+            windowSizeLabel.AutoSize = true;
+            windowSizeLabel.Location = new Point(1583, 316);
+            windowSizeLabel.Name = "windowSizeLabel";
+            windowSizeLabel.Size = new Size(76, 15);
+            windowSizeLabel.TabIndex = 7;
+            windowSizeLabel.Text = "Размер окна";
+            // 
+            // genderLabel
+            // 
+            genderLabel.AutoSize = true;
+            genderLabel.Location = new Point(1583, 207);
+            genderLabel.Name = "genderLabel";
+            genderLabel.Size = new Size(30, 15);
+            genderLabel.TabIndex = 8;
+            genderLabel.Text = "Пол";
+            // 
+            // smoothingLabel
+            // 
+            smoothingLabel.AutoSize = true;
+            smoothingLabel.Location = new Point(1583, 261);
+            smoothingLabel.Name = "smoothingLabel";
+            smoothingLabel.Size = new Size(81, 15);
+            smoothingLabel.TabIndex = 9;
+            smoothingLabel.Text = "Сглаживание";
+            // 
+            // inEconomySmoothingComboBox
+            // 
+            inEconomySmoothingComboBox.FormattingEnabled = true;
+            inEconomySmoothingComboBox.Location = new Point(1583, 549);
+            inEconomySmoothingComboBox.Name = "inEconomySmoothingComboBox";
+            inEconomySmoothingComboBox.Size = new Size(121, 23);
+            inEconomySmoothingComboBox.TabIndex = 10;
+            // 
+            // inEconomyWindowSizeNumericUpDown
+            // 
+            inEconomyWindowSizeNumericUpDown.Location = new Point(1583, 617);
+            inEconomyWindowSizeNumericUpDown.Maximum = new decimal(new int[] { 12, 0, 0, 0 });
+            inEconomyWindowSizeNumericUpDown.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            inEconomyWindowSizeNumericUpDown.Name = "inEconomyWindowSizeNumericUpDown";
+            inEconomyWindowSizeNumericUpDown.Size = new Size(121, 23);
+            inEconomyWindowSizeNumericUpDown.TabIndex = 11;
+            inEconomyWindowSizeNumericUpDown.Value = new decimal(new int[] { 5, 0, 0, 0 });
+            // 
+            // inEconomyWindowSizeLabel
+            // 
+            inEconomyWindowSizeLabel.AutoSize = true;
+            inEconomyWindowSizeLabel.Location = new Point(1588, 599);
+            inEconomyWindowSizeLabel.Name = "inEconomyWindowSizeLabel";
+            inEconomyWindowSizeLabel.Size = new Size(76, 15);
+            inEconomyWindowSizeLabel.TabIndex = 13;
+            inEconomyWindowSizeLabel.Text = "Размер окна";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(1583, 531);
+            label1.Name = "label1";
+            label1.Size = new Size(81, 15);
+            label1.TabIndex = 14;
+            label1.Text = "Сглаживание";
             // 
             // EconomyEmploedForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1730, 920);
-            Controls.Add(chart4);
-            Controls.Add(chart3);
-            Controls.Add(chart2);
-            Controls.Add(chart1);
+            ClientSize = new Size(1744, 974);
+            Controls.Add(label1);
+            Controls.Add(genderComboBox);
+            Controls.Add(smoothingComboBox);
+            Controls.Add(windowSizeNumericUpDown);
+            Controls.Add(windowSizeLabel);
+            Controls.Add(genderLabel);
+            Controls.Add(smoothingLabel);
+            Controls.Add(inEconomyWindowSizeLabel);
+            Controls.Add(inEconomySmoothingComboBox);
+            Controls.Add(inEconomyWindowSizeNumericUpDown);
+            Controls.Add(economyEmploed);
+            Controls.Add(inEconomyLevelSmooth);
+            Controls.Add(inEconomyLevel);
+            Controls.Add(economyEmploedSmooth);
             Name = "EconomyEmploedForm";
             Text = "EconomyEmploedForm";
-            ((System.ComponentModel.ISupportInitialize)chart1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)chart2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)chart3).EndInit();
-            ((System.ComponentModel.ISupportInitialize)chart4).EndInit();
+            ((System.ComponentModel.ISupportInitialize)economyEmploed).EndInit();
+            ((System.ComponentModel.ISupportInitialize)inEconomyLevelSmooth).EndInit();
+            inEconomyLevelSmooth.ResumeLayout(false);
+            inEconomyLevelSmooth.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)inEconomyLevel).EndInit();
+            ((System.ComponentModel.ISupportInitialize)economyEmploedSmooth).EndInit();
+            ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)inEconomyWindowSizeNumericUpDown).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart3;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart4;
+        private System.Windows.Forms.DataVisualization.Charting.Chart economyEmploed;
+        private System.Windows.Forms.DataVisualization.Charting.Chart inEconomyLevelSmooth;
+        private System.Windows.Forms.DataVisualization.Charting.Chart inEconomyLevel;
+        private System.Windows.Forms.DataVisualization.Charting.Chart economyEmploedSmooth;
+        private ComboBox genderComboBox;
+        private ComboBox smoothingComboBox;
+        private NumericUpDown windowSizeNumericUpDown;
+        private Label windowSizeLabel;
+        private Label genderLabel;
+        private Label smoothingLabel;
+        private ComboBox inEconomySmoothingComboBox;
+        private NumericUpDown inEconomyWindowSizeNumericUpDown;
+        private Label inEconomySmoothingLabel;
+        private Label inEconomyWindowSizeLabel;
+        private Label label1;
     }
 }

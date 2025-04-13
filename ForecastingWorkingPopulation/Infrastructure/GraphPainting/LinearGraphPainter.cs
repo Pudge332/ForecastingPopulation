@@ -12,6 +12,16 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
 {
     public class LinearGraphPainter
     {
+        public void PaintMultipleSeries(List<ChartDataService.SeriesData> dataSeries, Chart chart)
+        {
+            foreach (var series in dataSeries)
+            {
+                var seriesObj = new Series(series.SeriesName);
+                seriesObj.Points.DataBindXY(series.XValues, series.YValues);
+                chart.Series.Add(seriesObj);
+            }
+        }
+
         public Series PainLinearGraph(string name, List<double> xValues, List<double> yValues)
         {
             if (xValues.Count != yValues.Count)
