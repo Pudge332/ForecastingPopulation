@@ -11,6 +11,7 @@ namespace ForecastingWorkingPopulation.Database.Context
         public DbSet<RegionCoefficientSettingsEntity> RegionCoefficientSettings { get; set; }
         public DbSet<RegionMainFormSettingsEntity> RegionMainFormSettings { get; set; }
         public DbSet<RegionEconomyEmploedFormSettingsEntity> RegionEconomyEmploedFormSettings { get; set; }
+        public DbSet<BirthRateEntity> BirthRates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

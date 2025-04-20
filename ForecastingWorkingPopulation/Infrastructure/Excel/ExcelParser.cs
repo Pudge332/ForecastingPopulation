@@ -6,15 +6,13 @@ using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
 using ForecastingWorkingPopulation.Models.Excel;
 using OfficeOpenXml;
-using OfficeOpenXml.ConditionalFormatting.Contracts;
-using System.CodeDom;
-using System.ComponentModel;
 using System.Reflection;
 
 namespace ForecastingWorkingPopulation.Infrastructure.Excel
 {
     public class ExcelParser : IExcelParser
     {
+        private List<RegionInfoEntity> Regions = RegionRepository.GetRegions();
         public List<RegionStatisticsDto> Parse(string path, int startRowNumber, List<int> years, int endColumnNumber = 10)
         {
             //string path = "C:\\Excels\\Республика Карелия.xlsx";
@@ -99,17 +97,48 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             return ConvertFromBilutenToDto(preResult);
         }
 
+        public List<BirthRateEntity> ParseBirthRateBiluten(string path)
+        {
+            const string BirthRateWorksheetName = "2.1.1";
+            const int FirstRow = 6;
+            const int LastRow = 101;
+            var result = new List<BirthRateEntity>();
+
+            using(var package = new ExcelPackage(path))
+            {
+                var birthRateWorksheet = package.Workbook.Worksheets[BirthRateWorksheetName];
+                if (birthRateWorksheet is null)
+                    return null;
+
+                for (int currentRow = FirstRow; currentRow <= LastRow; currentRow++)
+                {
+                    var currentRegion = IsKnowRegion(birthRateWorksheet.Cells[currentRow, 1]?.Value?.ToString());
+                    if (currentRegion == null)
+                        continue;
+
+                    for (int birthRateColumn = 2; birthRateColumn <= 23; birthRateColumn++)
+                        result.Add(new BirthRateEntity
+                        {
+                            Year = 2024 + (birthRateColumn - 2),
+                            BirthRate = (int)ConvertToInt(birthRateWorksheet.Cells[currentRow, birthRateColumn].Value),
+                            RegionNumber = currentRegion.Number
+                        });
+                }
+            }
+
+            return result;
+        }
+
         public List<RegionExcelItem> GetBulitenWorksheets(string path, ref BilutenType type)
         {
             var result = new List<RegionExcelItem>();
-            var regions = RegionRepository.GetRegions();
             using (var package = new ExcelPackage(path))
             {
                 var worksheets = package.Workbook.Worksheets;
 
                 foreach(var worksheet in worksheets)
                 {
-                    var currentRegion = TryGetCurrentRegion(worksheet, regions, ref type);
+                    var currentRegion = TryGetCurrentRegion(worksheet, ref type);
 
                     if (currentRegion == null)
                         continue;
@@ -126,14 +155,19 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             return result;
         }
 
-        private RegionInfoEntity TryGetCurrentRegion(ExcelWorksheet worksheet, List<RegionInfoEntity> regions, ref BilutenType type)
+        private RegionInfoEntity IsKnowRegion(string value)
+        {
+            return Regions.FirstOrDefault(region => region.Name?.ToLowerInvariant().Trim() == value?.ToLowerInvariant().Trim());
+        }
+
+        private RegionInfoEntity TryGetCurrentRegion(ExcelWorksheet worksheet, ref BilutenType type)
         {
             var regionName = worksheet.Cells[4, 2]?.Value?.ToString()?.Trim()?.ToLower();
             var currentRegion = new RegionInfoEntity();
 
             if (regionName?.Contains('(') == false)
             {
-                currentRegion = regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
+                currentRegion = Regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
                 if(currentRegion != null)
                 {
                     type = BilutenType.Old;
@@ -142,7 +176,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             }
 
             regionName = worksheet.Cells[2, 1]?.Value?.ToString()?.Trim()?.ToLower();
-            currentRegion = regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
+            currentRegion = Regions.FirstOrDefault(region => region.Name.Trim().ToLower() == regionName);
 
             if (currentRegion != null)
                 type = BilutenType.New;

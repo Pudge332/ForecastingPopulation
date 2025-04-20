@@ -101,9 +101,22 @@ namespace ForecastingWorkingPopulation
                 NotificationForm.ShowSuccess($"Данные для региона с ID {regionId} ({dataType}) успешно сохранены. Количество строк {dtos.Count}");
         }
 
+        private void SaveDataToDatabase(List<BirthRateEntity> dtos)
+        {
+            _populationRepository.SaveBirthRateEntyties(dtos);
+
+            NotificationForm.ShowSuccess($"Загружено {dtos.Count} новых прогнозов рождаемости");
+        }
+
         private List<RegionStatisticsDto> ParseRegionStatistic(string filePath)
         {
             return _excelParser.Parse(filePath, 5, new List<int> { 2019, 2020, 2021, 2022, 2023 });
+        }
+
+        private void ParseBirthRateBiluten(string filePath)
+        {
+            var birthRateDtos = _excelParser.ParseBirthRateBiluten(filePath);
+            SaveDataToDatabase(birthRateDtos);
         }
 
         private (int, int) ParseBiluten(string filePath)
@@ -186,6 +199,19 @@ namespace ForecastingWorkingPopulation
         {
             var boxChecked = "Население в экономике";
             var boxUnChecked = "Постоянное население";
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // Настройка диалога выбора файла
+            openFileDialog1.Filter = "Excel Files|*.xls;*.xlsx";
+            openFileDialog1.Title = "Выберите файл Бюллетени в формате Excel";
+
+            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                var filePath = openFileDialog1.FileName;
+                ParseBirthRateBiluten(filePath);
+            }
         }
     }
 }

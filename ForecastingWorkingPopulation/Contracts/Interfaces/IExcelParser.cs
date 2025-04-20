@@ -1,4 +1,5 @@
-﻿using ForecastingWorkingPopulation.Models.Dto;
+﻿using ForecastingWorkingPopulation.Database.Models;
+using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
 using ForecastingWorkingPopulation.Models.Excel;
 using OfficeOpenXml;
@@ -20,6 +21,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         /// <returns></returns>
         public List<RegionStatisticsDto> Parse(string path, int startRowNumber, List<int> years, int endColumnNumber = 10);
         public List<RegionStatisticsDto> ParseBiluten(string path, string workSheetName, int columnOffset);
+        public List<BirthRateEntity> ParseBirthRateBiluten(string path);
         public List<RegionExcelItem> GetBulitenWorksheets(string path, ref BilutenType type);
     }
 }

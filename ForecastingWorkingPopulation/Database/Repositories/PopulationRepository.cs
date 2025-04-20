@@ -42,6 +42,11 @@ namespace ForecastingWorkingPopulation.Database.Repositories
             return _dbContext.Regions.ToList();
         }
 
+        public void SaveBirthRateEntyties(List<BirthRateEntity> dtos)
+        {
+            _dbContext.BirthRates.AddRange(dtos);
+        }
+
         public void SaveEmployedEconomyEntyties(int regionNumber, List<RegionStatisticsDto> dtos)
         {
             var entities = GetEconomyEmployedInRegion(regionNumber);
