@@ -9,8 +9,10 @@ namespace ForecastingWorkingPopulation.Infrastructure
         private List<RegionCoefficentDto> lifeExpectancyData;
         private List<RegionInEconomyLevelDto> inEconomyLevelData;
         private List<RegionInEconomyLevelDto> inEconomyLevelDataSmoothed;
-        private Dictionary<int, List<RegionStatisticsDto>> regionStatisticsData;
-        private Dictionary<int, List<RegionStatisticsDto>> regionStatisticsDataSmoothed;
+        private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsData;
+        private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsDataSmoothed;
+        private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationdRegionStatisticsData;
+        private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationStatisticsDataSmoothed;
         private int currentRegion;
 
         private List<int> availableYears = new List<int>();
@@ -19,8 +21,10 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             lifeExpectancyData = new List<RegionCoefficentDto>();
             inEconomyLevelData = new List<RegionInEconomyLevelDto>();
-            regionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
-            regionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
+            economyEmploedRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
+            economyEmploedRegionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
+            permanentPopulationdRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
+            permanentPopulationStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
         }
 
         public static CalculationStorage Instance
@@ -54,48 +58,92 @@ namespace ForecastingWorkingPopulation.Infrastructure
         public List<RegionInEconomyLevelDto> GetInEconomyLevelSmoothed() =>
             inEconomyLevelDataSmoothed;
 
-        public void StoreRegionStatistics(int year, List<RegionStatisticsDto> data)
+        public void StoreEconomyEmploedRegionStatistics(int year, List<RegionStatisticsDto> data)
         {
-            if (regionStatisticsData.ContainsKey(year))
+            if (economyEmploedRegionStatisticsData.ContainsKey(year))
             {
-                regionStatisticsData[year] = data;
+                economyEmploedRegionStatisticsData[year] = data;
             }
             else
             {
-                regionStatisticsData.Add(year, data);
+                economyEmploedRegionStatisticsData.Add(year, data);
             }
         }
 
-        public Dictionary<int, List<RegionStatisticsDto>> GetRegionStatisticsData()
+        public void StorePermanentPopulationRegionStatistics(int year, List<RegionStatisticsDto> data)
         {
-            return regionStatisticsData;
-        }
-
-        public List<RegionStatisticsDto> GetRegionStatisticsValues()
-        {
-            return regionStatisticsData.Values.SelectMany(x => x).ToList();
-        }
-
-        public void StoreRegionStatisticsSmoothed(int year, List<RegionStatisticsDto> data)
-        {
-            if (regionStatisticsDataSmoothed.ContainsKey(year))
+            if (permanentPopulationdRegionStatisticsData.ContainsKey(year))
             {
-                regionStatisticsDataSmoothed[year] = data;
+                permanentPopulationdRegionStatisticsData[year] = data;
             }
             else
             {
-                regionStatisticsDataSmoothed.Add(year, data);
+                permanentPopulationdRegionStatisticsData.Add(year, data);
             }
         }
 
-        public Dictionary<int, List<RegionStatisticsDto>> GetRegionStatisticsDataSmoothed()
+        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyEmploedRegionStatisticsData()
         {
-            return regionStatisticsDataSmoothed;
+            return economyEmploedRegionStatisticsData;
         }
 
-        public List<RegionStatisticsDto> GetRegionStatisticsValuesSmoothed()
+        public List<RegionStatisticsDto> GetEconomyEmploedRegionStatisticsValues()
         {
-            return regionStatisticsDataSmoothed.Values.SelectMany(x => x).ToList();
+            return economyEmploedRegionStatisticsData.Values.SelectMany(x => x).ToList();
+        }
+
+        public void StoreEconomyEmploedRegionStatisticsSmoothed(int year, List<RegionStatisticsDto> data)
+        {
+            if (economyEmploedRegionStatisticsDataSmoothed.ContainsKey(year))
+            {
+                economyEmploedRegionStatisticsDataSmoothed[year] = data;
+            }
+            else
+            {
+                economyEmploedRegionStatisticsDataSmoothed.Add(year, data);
+            }
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyEmploedRegionStatisticsDataSmoothed()
+        {
+            return economyEmploedRegionStatisticsDataSmoothed;
+        }
+
+        public List<RegionStatisticsDto> GetEconomyEmploedRegionStatisticsValuesSmoothed()
+        {
+            return economyEmploedRegionStatisticsDataSmoothed.Values.SelectMany(x => x).ToList();
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetPermanentPopulationRegionStatisticsData()
+        {
+            return permanentPopulationdRegionStatisticsData;
+        }
+
+        public List<RegionStatisticsDto> GetPermanentPopulationRegionStatisticsValues()
+        {
+            return permanentPopulationdRegionStatisticsData.Values.SelectMany(x => x).ToList();
+        }
+
+        public void StorePermanentPopulationStatisticsSmoothed(int year, List<RegionStatisticsDto> data)
+        {
+            if (permanentPopulationStatisticsDataSmoothed.ContainsKey(year))
+            {
+                permanentPopulationStatisticsDataSmoothed[year] = data;
+            }
+            else
+            {
+                permanentPopulationStatisticsDataSmoothed.Add(year, data);
+            }
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyPermanentPopulationStatisticsDataSmoothed()
+        {
+            return permanentPopulationStatisticsDataSmoothed;
+        }
+
+        public List<RegionStatisticsDto> GetPermanentPopulationStatisticsValuesSmoothed()
+        {
+            return permanentPopulationStatisticsDataSmoothed.Values.SelectMany(x => x).ToList();
         }
 
         public List<int> GetAvailableYears()
@@ -117,7 +165,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
         private void RegionNumberChanged(int value)
         {
             if (CurrentRegion != value)
-                regionStatisticsData.Clear();
+                economyEmploedRegionStatisticsData.Clear();
 
             CurrentRegion = value;
         }

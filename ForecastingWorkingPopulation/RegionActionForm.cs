@@ -29,7 +29,7 @@ namespace ForecastingWorkingPopulation
             CalculationStorage.Instance.CurrentRegion = _regionId;
 
             // Открываем MainForm
-            var mainForm = new EconomyEmploedForm();
+            var mainForm = new PermanentPopulationForm();
             mainForm.Show();
             this.Close();
         }

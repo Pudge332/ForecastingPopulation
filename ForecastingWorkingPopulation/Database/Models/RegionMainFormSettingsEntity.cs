@@ -28,5 +28,10 @@ namespace ForecastingWorkingPopulation.Database.Models
         /// Размер окна сглаживания
         /// </summary>
         public int WindowSize { get; set; }
+
+        /// <summary>
+        /// Максимальное значение по оси Y для графика постоянного населения
+        /// </summary>
+        public double PermanentPopulationMaxY { get; set; }
     }
 }

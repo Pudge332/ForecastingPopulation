@@ -448,7 +448,7 @@ namespace ForecastingWorkingPopulation
                         Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
                     });
                 }
-                CalculationStorage.Instance.StoreRegionStatistics(int.Parse(seriesData.SeriesName), statisticsData);
+                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(int.Parse(seriesData.SeriesName), statisticsData);
             }
         }
 
@@ -483,7 +483,7 @@ namespace ForecastingWorkingPopulation
                         Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
                     });
                 }
-                CalculationStorage.Instance.StoreRegionStatisticsSmoothed(int.Parse(seriesData.SeriesName), statisticsData);
+                CalculationStorage.Instance.StoreEconomyEmploedRegionStatisticsSmoothed(int.Parse(seriesData.SeriesName), statisticsData);
             }
         }
 

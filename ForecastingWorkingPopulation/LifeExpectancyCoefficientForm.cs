@@ -54,7 +54,7 @@ namespace ForecastingWorkingPopulation
             chartArea.AxisY.Maximum = 1.5;
             var ages = new List<double>();
             var coefficentDtos = new List<RegionCoefficentDto>();
-            var dtos = new List<RegionStatisticsDto>(CalculationStorage.Instance.GetRegionStatisticsValues());
+            var dtos = new List<RegionStatisticsDto>(CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues());
             var years = dtos.Select(dto => dto.Year).Distinct().OrderBy(x => x);
 
             // Обновляем заголовок формы, чтобы показать текущий регион

@@ -160,7 +160,7 @@ namespace ForecastingWorkingPopulation
 
                 var series = _linearGraphPainter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
                 currentChart.Series.Add(series);
-                CalculationStorage.Instance.StoreRegionStatistics(group.Key, currentGroup.ToList());
+                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(group.Key, currentGroup.ToList());
             }
 
             currentChart.ChartAreas[0].AxisX.Title = "Возраст";
