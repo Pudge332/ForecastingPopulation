@@ -363,8 +363,7 @@ namespace ForecastingWorkingPopulation
             var chartArea = lifeExpectancyCoefficient.ChartAreas[0];
             chartArea.AxisY.Maximum = 1.5;
             var ages = new List<double>();
-            var coefficentDtos = new List<RegionCoefficentDto>();
-            var dtos = new List<RegionStatisticsDto>(CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues());
+            var dtos = new List<RegionStatisticsDto>(CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues());
             if (!dtos.Any())
                 dtos = _populationRepository.GetPopulationInRegion(regionNumber);
             var years = dtos.Select(dto => dto.Year).Distinct().OrderBy(x => x);
@@ -372,28 +371,69 @@ namespace ForecastingWorkingPopulation
             // Обновляем заголовок формы, чтобы показать текущий регион
             this.Text = $"Постоянное население региона (ID: {regionNumber})";
 
+            // Отдельные списки для мужчин и женщин
+            var coefficentDtosMale = new List<RegionCoefficentDto>();
+            var coefficentDtosFemale = new List<RegionCoefficentDto>();
+
             foreach (var year in years)
             {
                 if (year == years.Last())
                     continue;
 
-                coefficentDtos.AddRange(GetData(dtos.Where(dto => dto.Year == year), dtos.Where(dto => dto.Year == year + 1)));
+                // Получаем данные для мужчин
+                var maleData = GetData(
+                    dtos.Where(dto => dto.Year == year && dto.Gender == Gender.Male),
+                    dtos.Where(dto => dto.Year == year + 1 && dto.Gender == Gender.Male));
+                coefficentDtosMale.AddRange(maleData);
+
+                // Получаем данные для женщин
+                var femaleData = GetData(
+                    dtos.Where(dto => dto.Year == year && dto.Gender == Gender.Female),
+                    dtos.Where(dto => dto.Year == year + 1 && dto.Gender == Gender.Female));
+                coefficentDtosFemale.AddRange(femaleData);
             }
 
-            var grouppedDtos = GetAverage(coefficentDtos);
+            // Обрабатываем данные для мужчин
+            var grouppedDtosMale = GetAverage(coefficentDtosMale);
+            // Устанавливаем пол для всех записей
+            grouppedDtosMale.ForEach(dto => dto.Gender = Gender.Male);
 
-            var xValues = new List<double>();
-            var yValues = new List<double>();
+            // Обрабатываем данные для женщин
+            var grouppedDtosFemale = GetAverage(coefficentDtosFemale);
+            // Устанавливаем пол для всех записей
+            grouppedDtosFemale.ForEach(dto => dto.Gender = Gender.Female);
 
-            foreach (var group in grouppedDtos)
+            // Создаем серию для мужчин
+            var xValuesMale = new List<double>();
+            var yValuesMale = new List<double>();
+
+            foreach (var group in grouppedDtosMale)
             {
-                xValues.Add(group.Age);
-                yValues.Add(group.Coefficent);
+                xValuesMale.Add(group.Age);
+                yValuesMale.Add(group.Coefficent);
             }
 
-            var series = _painter.PainLinearGraph("КПЖ", xValues, yValues);
-            lifeExpectancyCoefficient.Series.Add(series);
-            CalculationStorage.Instance.StoreLifeExpectancyCalculation(grouppedDtos);
+            var seriesMale = _painter.PainLinearGraph("КПЖ (мужчины)", xValuesMale, yValuesMale);
+            seriesMale.Color = System.Drawing.Color.Blue;
+            lifeExpectancyCoefficient.Series.Add(seriesMale);
+
+            // Создаем серию для женщин
+            var xValuesFemale = new List<double>();
+            var yValuesFemale = new List<double>();
+
+            foreach (var group in grouppedDtosFemale)
+            {
+                xValuesFemale.Add(group.Age);
+                yValuesFemale.Add(group.Coefficent);
+            }
+
+            var seriesFemale = _painter.PainLinearGraph("КПЖ (женщины)", xValuesFemale, yValuesFemale);
+            seriesFemale.Color = System.Drawing.Color.Red;
+            lifeExpectancyCoefficient.Series.Add(seriesFemale);
+
+            // Сохраняем данные отдельно для мужчин и женщин
+            CalculationStorage.Instance.StoreLifeExpectancyCalculation(grouppedDtosMale, Gender.Male);
+            CalculationStorage.Instance.StoreLifeExpectancyCalculation(grouppedDtosFemale, Gender.Female);
             CalculationStorage.Instance.StoreAvailableYears(years.ToList());
             CreateYearControls();
         }
@@ -515,7 +555,8 @@ namespace ForecastingWorkingPopulation
                 {
                     Year = currentYearDto.Year,
                     Age = currentYearDto.Age,
-                    Coefficent = coefficent
+                    Coefficent = coefficent,
+                    Gender = currentYearDto.Gender
                 });
             }
 

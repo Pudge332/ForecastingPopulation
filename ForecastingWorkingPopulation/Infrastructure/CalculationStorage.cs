@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using ForecastingWorkingPopulation.Models.Dto;
+using ForecastingWorkingPopulation.Models.Enums;
 
 namespace ForecastingWorkingPopulation.Infrastructure
 {
     public sealed class CalculationStorage
     {
         private static readonly CalculationStorage instance = new CalculationStorage();
-        private List<RegionCoefficentDto> lifeExpectancyData;
+        private List<RegionCoefficentDto> lifeExpectancyDataMale;
+        private List<RegionCoefficentDto> lifeExpectancyDataFemale;
         private List<RegionInEconomyLevelDto> inEconomyLevelData;
         private List<RegionInEconomyLevelDto> inEconomyLevelDataSmoothed;
         private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsData;
@@ -19,7 +21,8 @@ namespace ForecastingWorkingPopulation.Infrastructure
 
         private CalculationStorage()
         {
-            lifeExpectancyData = new List<RegionCoefficentDto>();
+            lifeExpectancyDataMale = new List<RegionCoefficentDto>();
+            lifeExpectancyDataFemale = new List<RegionCoefficentDto>();
             inEconomyLevelData = new List<RegionInEconomyLevelDto>();
             economyEmploedRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
             economyEmploedRegionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
@@ -32,14 +35,39 @@ namespace ForecastingWorkingPopulation.Infrastructure
             get { return instance; }
         }
 
-        public void StoreLifeExpectancyCalculation(List<RegionCoefficentDto> data)
+        public void StoreLifeExpectancyCalculation(List<RegionCoefficentDto> data, Gender gender)
         {
-            lifeExpectancyData = data;
+            if (gender == Gender.Male)
+            {
+                lifeExpectancyDataMale = new List<RegionCoefficentDto>(data);
+            }
+            else
+            {
+                lifeExpectancyDataFemale = new List<RegionCoefficentDto>(data);
+            }
+        }
+
+        public List<RegionCoefficentDto> GetLifeExpectancyDataMale()
+        {
+            return new List<RegionCoefficentDto>(lifeExpectancyDataMale);
+        }
+
+        public List<RegionCoefficentDto> GetLifeExpectancyDataFemale()
+        {
+            return new List<RegionCoefficentDto>(lifeExpectancyDataFemale);
+        }
+
+        public List<RegionCoefficentDto> GetLifeExpectancyData(Gender gender)
+        {
+            return gender == Gender.Male ? GetLifeExpectancyDataMale() : GetLifeExpectancyDataFemale();
         }
 
         public List<RegionCoefficentDto> GetLifeExpectancyData()
         {
-            return lifeExpectancyData;
+            var combinedData = new List<RegionCoefficentDto>();
+            combinedData.AddRange(lifeExpectancyDataMale);
+            combinedData.AddRange(lifeExpectancyDataFemale);
+            return combinedData;
         }
 
         public void StoreInEconomyLevel(List<RegionInEconomyLevelDto> data)

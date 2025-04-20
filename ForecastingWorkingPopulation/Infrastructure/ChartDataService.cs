@@ -1,5 +1,9 @@
 using ForecastingWorkingPopulation.Models.Dto;
+using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ForecastingWorkingPopulation.Infrastructure
 {
@@ -29,6 +33,57 @@ namespace ForecastingWorkingPopulation.Infrastructure
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Универсальный метод для подготовки данных графиков на основе коэффициентов
+        /// </summary>
+        /// <param name="coefficients">Список коэффициентов</param>
+        /// <param name="gender">Пол (All, Males, Females)</param>
+        /// <returns>Список данных для построения графиков</returns>
+        public List<SeriesData> PrepareChartDataFromCoefficients(List<RegionCoefficentDto> coefficients, GenderComboBox gender)
+        {
+            var result = new List<SeriesData>();
+
+            // Фильтруем по полу, если нужно
+            var filteredData = FilterCoefficientsByGender(coefficients, gender);
+
+            // Группируем по годам
+            var groupedByYear = filteredData
+                .GroupBy(d => d.Year)
+                .OrderBy(g => g.Key);
+
+            foreach (var yearGroup in groupedByYear)
+            {
+                var xValues = yearGroup.Select(d => d.Age).ToList();
+                var yValues = yearGroup.Select(d => d.Coefficent).ToList();
+
+                result.Add(new SeriesData
+                {
+                    SeriesName = $"{yearGroup.Key}",
+                    XValues = xValues,
+                    YValues = yValues
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Фильтрует коэффициенты по полу
+        /// </summary>
+        private List<RegionCoefficentDto> FilterCoefficientsByGender(List<RegionCoefficentDto> coefficients, GenderComboBox gender)
+        {
+            switch (gender)
+            {
+                case GenderComboBox.Males:
+                    return coefficients.Where(c => c.Gender == Gender.Male).ToList();
+                case GenderComboBox.Females:
+                    return coefficients.Where(c => c.Gender == Gender.Female).ToList();
+                case GenderComboBox.All:
+                default:
+                    return coefficients.ToList();
+            }
         }
         public IEnumerable<RegionStatisticsDto> SelectByGender(GenderComboBox gender, IEnumerable<RegionStatisticsDto> data)
         {
