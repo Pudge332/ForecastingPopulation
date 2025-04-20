@@ -42,6 +42,11 @@ namespace ForecastingWorkingPopulation.Database.Repositories
             return _dbContext.Regions.ToList();
         }
 
+        public List<BirthRateEntity>? GetBirthRateEntitiesByRegionNumber(int regionNumber)
+        {
+            return _dbContext.BirthRates.Where(entity => entity.RegionNumber == regionNumber)?.ToList();
+        }
+
         public void SaveBirthRateEntyties(List<BirthRateEntity> dtos)
         {
             _dbContext.BirthRates.AddRange(dtos);

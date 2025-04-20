@@ -46,6 +46,12 @@ namespace ForecastingWorkingPopulation
 
             // Отрисовываем график постоянного населения
             PaintByGender((GenderComboBox)genderComboBox.SelectedIndex, (SmoothComboBox)smoothingComboBox.SelectedIndex);
+
+            // Заполняем график прогноза численности населения по возрастным группам
+            FillForecastInOneAgeChart(regionId);
+
+            // Создаем прогноз численности постоянного населения по годам
+            CreatePopulationForecastByYear(regionId);
         }
 
         private void Init()
@@ -634,6 +640,12 @@ namespace ForecastingWorkingPopulation
             SaveRegionCoefficientSettings(regionId);
 
             CalculateAndPaintCoefficent(regionId);
+
+            // Обновляем график прогноза численности населения
+            FillForecastInOneAgeChart(regionId);
+
+            // Создаем прогноз численности постоянного населения по годам
+            CreatePopulationForecastByYear(regionId);
         }
 
         private class YearControl
@@ -661,6 +673,295 @@ namespace ForecastingWorkingPopulation
                     Value = 1
                 };
             }
+        }
+
+        /// <summary>
+        /// Создает прогноз численности постоянного населения по годам с 2025 по 2045 с шагом 5 лет
+        /// </summary>
+        /// <param name="regionId">Идентификатор региона</param>
+        private void CreatePopulationForecastByYear(int regionId)
+        {
+            // Очищаем график перед добавлением новых данных
+            forecastinForOneYear.Series.Clear();
+            forecastinForOneYear.ChartAreas[0].AxisX.Title = "Возраст";
+            forecastinForOneYear.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+
+            // Получаем данные о населении
+            var populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            if (!populationData.Any())
+                populationData = _populationRepository.GetPopulationInRegion(regionId);
+
+            // Получаем коэффициенты для прогнозирования
+            var maleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataMale();
+            var femaleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataFemale();
+
+            // Получаем прогнозы рождаемости для 0 лет
+            var birthRates = _populationRepository.GetBirthRateEntitiesByRegionNumber(regionId);
+
+            // Определяем годы для визуализации с шагом 5 лет
+            var visualizationYears = new List<int> { 2025, 2030, 2035, 2040, 2045 };
+
+            // Получаем последний известный год данных
+            int lastKnownYear = populationData.Max(p => p.Year);
+
+            // Создаем словари для хранения прогнозных данных по годам и полу
+            var maleForecastByYear = new Dictionary<int, Dictionary<int, double>>(); // год -> возраст -> численность
+            var femaleForecastByYear = new Dictionary<int, Dictionary<int, double>>(); // год -> возраст -> численность
+
+            // Инициализируем начальные значения из последнего известного года
+            maleForecastByYear[lastKnownYear] = new Dictionary<int, double>();
+            femaleForecastByYear[lastKnownYear] = new Dictionary<int, double>();
+
+            // Заполняем начальные данные
+            foreach (var dto in populationData.Where(p => p.Year == lastKnownYear))
+            {
+                if (dto.Gender == Gender.Male)
+                    maleForecastByYear[lastKnownYear][dto.Age] = dto.SummaryByYear;
+                else
+                    femaleForecastByYear[lastKnownYear][dto.Age] = dto.SummaryByYear;
+            }
+
+            // Рассчитываем прогноз для каждого года от lastKnownYear+1 до 2045
+            for (int year = lastKnownYear + 1; year <= 2045; year++)
+            {
+                maleForecastByYear[year] = new Dictionary<int, double>();
+                femaleForecastByYear[year] = new Dictionary<int, double>();
+
+                // Прогнозируем для каждого возраста
+                for (int age = 0; age <= 100; age++)
+                {
+                    // Для возраста 0 используем данные о рождаемости
+                    if (age == 0)
+                    {
+                        var birthRate = birthRates?.FirstOrDefault(b => b.Year == year)?.BirthRate ??
+                                      (birthRates?.OrderByDescending(b => b.Year).FirstOrDefault()?.BirthRate ?? 0);
+
+                        // Распределяем рождаемость между полами (примерно 51% мальчиков, 49% девочек)
+                        maleForecastByYear[year][age] = birthRate * 0.51;
+                        femaleForecastByYear[year][age] = birthRate * 0.49;
+                    }
+                    else
+                    {
+                        // Для остальных возрастов используем метод передвижки с коэффициентами
+                        // Находим подходящие коэффициенты для предыдущего возраста
+                        var maleCoef = maleCoefficients
+                            .Where(c => c.Age == age - 1)
+                            .Select(c => c.Coefficent)
+                            .DefaultIfEmpty(1.0)
+                            .Average();
+
+                        var femaleCoef = femaleCoefficients
+                            .Where(c => c.Age == age - 1)
+                            .Select(c => c.Coefficent)
+                            .DefaultIfEmpty(1.0)
+                            .Average();
+
+                        // Применяем коэффициенты к предыдущему году и возрасту
+                        // Используем метод передвижек - берем население предыдущего года и возраста и умножаем на коэффициент дожития
+                        double prevMaleValue = 0;
+                        double prevFemaleValue = 0;
+
+                        // Получаем значения для предыдущего года и возраста
+                        if (maleForecastByYear.TryGetValue(year - 1, out var maleAgeDict))
+                        {
+                            maleAgeDict.TryGetValue(age - 1, out prevMaleValue);
+                        }
+
+                        if (femaleForecastByYear.TryGetValue(year - 1, out var femaleAgeDict))
+                        {
+                            femaleAgeDict.TryGetValue(age - 1, out prevFemaleValue);
+                        }
+
+                        // Применяем коэффициенты к предыдущему году и возрасту
+                        maleForecastByYear[year][age] = prevMaleValue * maleCoef;
+                        femaleForecastByYear[year][age] = prevFemaleValue * femaleCoef;
+                    }
+                }
+            }
+
+            // Добавляем фактические данные за последний известный год
+            var lastYearData = populationData.Where(p => p.Year == lastKnownYear);
+            var xValuesLastYear = new List<double>();
+            var yValuesLastYear = new List<double>();
+
+            // Группируем данные по возрасту и суммируем по полу
+            foreach (var ageGroup in lastYearData.GroupBy(p => p.Age).OrderBy(g => g.Key))
+            {
+                if (ageGroup.Key >= _minAge && ageGroup.Key <= _maxAge)
+                {
+                    xValuesLastYear.Add(ageGroup.Key);
+                    yValuesLastYear.Add(ageGroup.Sum(p => p.SummaryByYear));
+                }
+            }
+
+            // Добавляем серию для последнего известного года
+            var seriesLastYear = _painter.PainLinearGraph($"Факт {lastKnownYear}", xValuesLastYear, yValuesLastYear);
+            seriesLastYear.Color = System.Drawing.Color.Black;
+            seriesLastYear.BorderWidth = 3;
+            forecastinForOneYear.Series.Add(seriesLastYear);
+
+            // Добавляем прогнозные данные только для годов с шагом в 5 лет (для визуализации)
+            foreach (var year in visualizationYears.Where(y => y > lastKnownYear))
+            {
+                var xValues = new List<double>();
+                var yValues = new List<double>();
+
+                // Для каждого возраста суммируем данные по мужчинам и женщинам
+                for (int age = _minAge; age <= _maxAge; age++)
+                {
+                    xValues.Add(age);
+                    double maleValue = maleForecastByYear[year].GetValueOrDefault(age, 0);
+                    double femaleValue = femaleForecastByYear[year].GetValueOrDefault(age, 0);
+                    yValues.Add(maleValue + femaleValue);
+                }
+
+                // Создаем серию для текущего прогнозного года
+                var series = _painter.PainLinearGraph($"Прогноз {year}", xValues, yValues);
+                forecastinForOneYear.Series.Add(series);
+            }
+
+            // Устанавливаем максимальное значение по оси Y
+            var seriesDataList = PermanentPopulation.Series
+                .Select(s => new ChartDataService.SeriesData {
+                    SeriesName = s.Name,
+                    XValues = s.Points.Select(p => p.XValue).ToList(),
+                    YValues = s.Points.Select(p => p.YValues[0]).ToList()
+                })
+                .ToList();
+
+            SetChartYAxisMaximum(PermanentPopulation, seriesDataList, "PermanentPopulationMaxY");
+        }
+
+        /// <summary>
+        /// Заполняет график прогноза численности населения по возрастным группам
+        /// </summary>
+        /// <param name="regionId">Идентификатор региона</param>
+        private void FillForecastInOneAgeChart(int regionId)
+        {
+            forecastionInOneAge.Series.Clear();
+            forecastionInOneAge.ChartAreas[0].AxisX.Title = "Год";
+            forecastionInOneAge.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+
+            // Получаем данные о населении
+            var populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            if (!populationData.Any())
+                populationData = _populationRepository.GetPopulationInRegion(regionId);
+
+            // Получаем коэффициенты для прогнозирования
+            var maleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataMale();
+            var femaleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataFemale();
+
+            // Получаем прогнозы рождаемости для 0 лет
+            var birthRates = _populationRepository.GetBirthRateEntitiesByRegionNumber(regionId);
+
+            // Определяем возрастные группы с шагом 10 лет, начиная с 10
+            var ageGroups = new List<int> { 10, 20, 30, 40, 50, 60, 70, 80 };
+
+            // Определяем текущий год и последний год прогноза
+            int currentYear = 2025;
+            int lastYear = 2045;
+
+            // Для каждой возрастной группы создаем серию данных
+            foreach (var age in ageGroups)
+            {
+                var xValues = new List<double>(); // Годы
+                var yValues = new List<double>(); // Численность населения
+
+                // Получаем текущие значения для возрастной группы (до 2025 года)
+                var historicalYears = populationData
+                    .Where(p => p.Age == age)
+                    .GroupBy(p => p.Year)
+                    .OrderBy(g => g.Key);
+
+                foreach (var yearGroup in historicalYears)
+                {
+                    if (yearGroup.Key <= currentYear)
+                    {
+                        xValues.Add(yearGroup.Key);
+
+                        // Суммируем данные по мужчинам и женщинам
+                        double totalPopulation = yearGroup
+                            .Sum(p => p.SummaryByYear);
+
+                        yValues.Add(totalPopulation);
+                    }
+                }
+
+                // Прогнозируем численность населения для будущих лет (после 2025)
+                // Берем последние известные данные как базу для прогноза
+                var lastKnownYear = historicalYears.LastOrDefault()?.Key ?? currentYear;
+                var lastKnownData = populationData
+                    .Where(p => p.Year == lastKnownYear && p.Age == age)
+                    .ToList();
+
+                if (lastKnownData.Any())
+                {
+                    // Создаем словари для хранения прогнозных данных по годам и полу
+                    var maleForecast = new Dictionary<int, double>();
+                    var femaleForecast = new Dictionary<int, double>();
+
+                    // Инициализируем начальные значения
+                    maleForecast[lastKnownYear] = lastKnownData
+                        .Where(p => p.Gender == Gender.Male)
+                        .Sum(p => p.SummaryByYear);
+
+                    femaleForecast[lastKnownYear] = lastKnownData
+                        .Where(p => p.Gender == Gender.Female)
+                        .Sum(p => p.SummaryByYear);
+
+                    // Прогнозируем численность для каждого года
+                    for (int year = lastKnownYear + 1; year <= lastYear; year++)
+                    {
+                        // Для возраста 0 используем данные о рождаемости
+                        if (age == 0)
+                        {
+                            var birthRate = birthRates?.FirstOrDefault(b => b.Year == year)?.BirthRate ?? 0;
+                            // Распределяем рождаемость между полами (примерно 51% мальчиков, 49% девочек)
+                            maleForecast[year] = birthRate * 0.51;
+                            femaleForecast[year] = birthRate * 0.49;
+                        }
+                        else
+                        {
+                            // Для остальных возрастов используем метод передвижки с коэффициентами
+                            // Находим подходящие коэффициенты для текущего возраста
+                            var maleCoef = maleCoefficients
+                                .Where(c => c.Age == age - 1)
+                                .Select(c => c.Coefficent)
+                                .DefaultIfEmpty(1.0)
+                                .Average();
+
+                            var femaleCoef = femaleCoefficients
+                                .Where(c => c.Age == age - 1)
+                                .Select(c => c.Coefficent)
+                                .DefaultIfEmpty(1.0)
+                                .Average();
+
+                            // Применяем коэффициенты к предыдущему году
+                            maleForecast[year] = maleForecast.GetValueOrDefault(year - 1, 0) * maleCoef;
+                            femaleForecast[year] = femaleForecast.GetValueOrDefault(year - 1, 0) * femaleCoef;
+                        }
+
+                        // Добавляем прогнозные данные в графики
+                        xValues.Add(year);
+                        yValues.Add(maleForecast[year] + femaleForecast[year]);
+                    }
+                }
+
+                // Создаем серию для текущей возрастной группы
+                var series = _painter.PainLinearGraph($"Возраст {age}", xValues, yValues);
+                forecastionInOneAge.Series.Add(series);
+            }
+
+            // Устанавливаем максимальное значение по оси Y
+            var seriesDataList = forecastionInOneAge.Series
+                .Select(s => new ChartDataService.SeriesData {
+                    SeriesName = s.Name,
+                    XValues = s.Points.Select(p => p.XValue).ToList(),
+                    YValues = s.Points.Select(p => p.YValues[0]).ToList()
+                })
+                .ToList();
+
+            SetChartYAxisMaximum(forecastionInOneAge, seriesDataList, "PermanentPopulationMaxY");
         }
     }
 }

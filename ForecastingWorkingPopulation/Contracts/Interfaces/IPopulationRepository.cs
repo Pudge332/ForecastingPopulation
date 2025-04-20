@@ -9,6 +9,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         public List<RegionStatisticsDto> GetEconomyEmployedInRegion(int regionNumber);
         public List<RegionInfoEntity> GetAllRegions();
         public void SaveBirthRateEntyties(List<BirthRateEntity> dtos);
+        public List<BirthRateEntity>? GetBirthRateEntitiesByRegionNumber(int regionNumber);
         public void SaveEmployedEconomyEntyties(int regionNumber, List<RegionStatisticsDto> dtos);
         public void SavePermanentPopulationEntyties(int regionNumber, List<RegionStatisticsDto> dtos);
 

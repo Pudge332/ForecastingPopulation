@@ -33,18 +33,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea7 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend7 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea8 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend8 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
             lifeExpectancyCoefficient = new System.Windows.Forms.DataVisualization.Charting.Chart();
             label1 = new Label();
             checkBox1 = new CheckBox();
@@ -63,7 +63,7 @@
             labelSmoothing = new Label();
             labelWindowSize = new Label();
             forecastionInOneAge = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            forecastinForOneMan = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            forecastinForOneYear = new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)lifeExpectancyCoefficient).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
@@ -71,22 +71,22 @@
             ((System.ComponentModel.ISupportInitialize)PermanentPopulation).BeginInit();
             ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)forecastionInOneAge).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)forecastinForOneMan).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)forecastinForOneYear).BeginInit();
             SuspendLayout();
             // 
             // lifeExpectancyCoefficient
             // 
-            chartArea1.Name = "ChartArea1";
-            lifeExpectancyCoefficient.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            lifeExpectancyCoefficient.Legends.Add(legend1);
+            chartArea5.Name = "ChartArea1";
+            lifeExpectancyCoefficient.ChartAreas.Add(chartArea5);
+            legend5.Name = "Legend1";
+            lifeExpectancyCoefficient.Legends.Add(legend5);
             lifeExpectancyCoefficient.Location = new Point(12, 532);
             lifeExpectancyCoefficient.Name = "lifeExpectancyCoefficient";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Legend = "Legend1";
-            series1.Name = "Series2";
-            lifeExpectancyCoefficient.Series.Add(series1);
+            series5.ChartArea = "ChartArea1";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series5.Legend = "Legend1";
+            series5.Name = "Series2";
+            lifeExpectancyCoefficient.Series.Add(series5);
             lifeExpectancyCoefficient.Size = new Size(857, 517);
             lifeExpectancyCoefficient.TabIndex = 0;
             lifeExpectancyCoefficient.Text = "Коэффициенты продолжительности жизни";
@@ -173,17 +173,17 @@
             // 
             // PermanentPopulation
             // 
-            chartArea2.Name = "ChartArea1";
-            PermanentPopulation.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            PermanentPopulation.Legends.Add(legend2);
+            chartArea6.Name = "ChartArea1";
+            PermanentPopulation.ChartAreas.Add(chartArea6);
+            legend6.Name = "Legend1";
+            PermanentPopulation.Legends.Add(legend6);
             PermanentPopulation.Location = new Point(12, 12);
             PermanentPopulation.Name = "PermanentPopulation";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            PermanentPopulation.Series.Add(series2);
+            series6.ChartArea = "ChartArea1";
+            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series6.Legend = "Legend1";
+            series6.Name = "Series1";
+            PermanentPopulation.Series.Add(series6);
             PermanentPopulation.Size = new Size(857, 514);
             PermanentPopulation.TabIndex = 10;
             PermanentPopulation.Text = "Постоянное население";
@@ -243,44 +243,44 @@
             // 
             // forecastionInOneAge
             // 
-            chartArea3.Name = "ChartArea1";
-            forecastionInOneAge.ChartAreas.Add(chartArea3);
-            legend3.Name = "Legend1";
-            forecastionInOneAge.Legends.Add(legend3);
+            chartArea7.Name = "ChartArea1";
+            forecastionInOneAge.ChartAreas.Add(chartArea7);
+            legend7.Name = "Legend1";
+            forecastionInOneAge.Legends.Add(legend7);
             forecastionInOneAge.Location = new Point(1096, 12);
             forecastionInOneAge.Name = "forecastionInOneAge";
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series3.Legend = "Legend1";
-            series3.Name = "Series2";
-            forecastionInOneAge.Series.Add(series3);
+            series7.ChartArea = "ChartArea1";
+            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series7.Legend = "Legend1";
+            series7.Name = "Series2";
+            forecastionInOneAge.Series.Add(series7);
             forecastionInOneAge.Size = new Size(1026, 514);
             forecastionInOneAge.TabIndex = 17;
             forecastionInOneAge.Text = "chart1";
             // 
-            // forecastinForOneMan
+            // forecastinForOneYear
             // 
-            chartArea4.Name = "ChartArea1";
-            forecastinForOneMan.ChartAreas.Add(chartArea4);
-            legend4.Name = "Legend1";
-            forecastinForOneMan.Legends.Add(legend4);
-            forecastinForOneMan.Location = new Point(1096, 532);
-            forecastinForOneMan.Name = "forecastinForOneMan";
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series4.Legend = "Legend1";
-            series4.Name = "Series2";
-            forecastinForOneMan.Series.Add(series4);
-            forecastinForOneMan.Size = new Size(1026, 517);
-            forecastinForOneMan.TabIndex = 18;
-            forecastinForOneMan.Text = "chart2";
+            chartArea8.Name = "ChartArea1";
+            forecastinForOneYear.ChartAreas.Add(chartArea8);
+            legend8.Name = "Legend1";
+            forecastinForOneYear.Legends.Add(legend8);
+            forecastinForOneYear.Location = new Point(1096, 532);
+            forecastinForOneYear.Name = "forecastinForOneYear";
+            series8.ChartArea = "ChartArea1";
+            series8.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series8.Legend = "Legend1";
+            series8.Name = "Series2";
+            forecastinForOneYear.Series.Add(series8);
+            forecastinForOneYear.Size = new Size(1026, 517);
+            forecastinForOneYear.TabIndex = 18;
+            forecastinForOneYear.Text = "chart2";
             // 
             // PermanentPopulationForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(2134, 1061);
-            Controls.Add(forecastinForOneMan);
+            Controls.Add(forecastinForOneYear);
             Controls.Add(forecastionInOneAge);
             Controls.Add(labelWindowSize);
             Controls.Add(labelSmoothing);
@@ -308,7 +308,7 @@
             ((System.ComponentModel.ISupportInitialize)PermanentPopulation).EndInit();
             ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)forecastionInOneAge).EndInit();
-            ((System.ComponentModel.ISupportInitialize)forecastinForOneMan).EndInit();
+            ((System.ComponentModel.ISupportInitialize)forecastinForOneYear).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -333,7 +333,7 @@
         private Label labelSmoothing;
         private Label labelWindowSize;
         private System.Windows.Forms.DataVisualization.Charting.Chart forecastionInOneAge;
-        private System.Windows.Forms.DataVisualization.Charting.Chart forecastinForOneMan;
+        private System.Windows.Forms.DataVisualization.Charting.Chart forecastinForOneYear;
 
         // Элементы управления для годов, которые создаются динамически
         // Они объявлены здесь для поддержки дизайнера
