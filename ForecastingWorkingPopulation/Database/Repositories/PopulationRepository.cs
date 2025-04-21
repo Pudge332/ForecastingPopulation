@@ -19,7 +19,7 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
         private void Init(PopulationContext dbContext)
         {
-            dbContext.Database.Migrate();
+            //dbContext.Database.Migrate();
             FillRegions();
         }
 
@@ -49,7 +49,9 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
         public void SaveBirthRateEntyties(List<BirthRateEntity> dtos)
         {
+            _dbContext.BirthRates.ExecuteDelete();
             _dbContext.BirthRates.AddRange(dtos);
+            _dbContext.SaveChanges();
         }
 
         public void SaveEmployedEconomyEntyties(int regionNumber, List<RegionStatisticsDto> dtos)

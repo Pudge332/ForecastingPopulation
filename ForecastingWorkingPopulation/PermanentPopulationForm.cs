@@ -51,7 +51,7 @@ namespace ForecastingWorkingPopulation
             FillForecastInOneAgeChart(regionId);
 
             // Создаем прогноз численности постоянного населения по годам
-            CreatePopulationForecastByYear(regionId);
+            CreatePopulationForecastByYeart(regionId);
         }
 
         private void Init()
@@ -645,7 +645,7 @@ namespace ForecastingWorkingPopulation
             FillForecastInOneAgeChart(regionId);
 
             // Создаем прогноз численности постоянного населения по годам
-            CreatePopulationForecastByYear(regionId);
+            CreatePopulationForecastByYeart(regionId);
         }
 
         private class YearControl
@@ -673,6 +673,103 @@ namespace ForecastingWorkingPopulation
                     Value = 1
                 };
             }
+        }
+
+        private void CreatePopulationForecastByYeart(int regionId)
+        {
+            forecastinForOneYear.Series.Clear();
+            forecastinForOneYear.ChartAreas[0].AxisX.Title = "Возраст";
+            forecastinForOneYear.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+            var xValues = new List<double>();
+            var yValues = new List<double>();
+
+            // Получаем данные о населении
+            var populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            if (!populationData.Any())
+                populationData = _populationRepository.GetPopulationInRegion(regionId);
+
+            var maleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataMale();
+            var femaleCoefficients = CalculationStorage.Instance.GetLifeExpectancyDataFemale();
+            // Получаем прогнозы рождаемости для 0 лет
+            var birthRates = _populationRepository.GetBirthRateEntitiesByRegionNumber(regionId);
+            var visualizationYears = new List<int> { 2025, 2030, 2035, 2040, 2045 };
+            var lastYearData = populationData.Where(dto => dto.Year == 2024).ToList();
+            lastYearData.ForEach(dto => dto.SummaryByYearSmoothed = dto.SummaryByYear);
+            (xValues, yValues) = GetValuesForChart(lastYearData);
+            var seriesLastYear = _painter.PainLinearGraph($"Факт {2024}", xValues, yValues);
+            forecastinForOneYear.Series.Add(seriesLastYear);
+            var forecastByYears = new Dictionary<int, List<RegionStatisticsDto>>
+            {
+                { 2024, lastYearData }
+            };
+            for (int year = 2025; year < 2046; year++)
+            {
+                var dtos = CreateEmptyDtos(year);
+                dtos[0].SummaryByYearSmoothed = birthRates.FirstOrDefault(x => x.Year == year).BirthRate * 0.51;
+                dtos[1].SummaryByYearSmoothed = birthRates.FirstOrDefault(x => x.Year == year).BirthRate * 0.49;
+                for (int index = 2; index < dtos.Count - 1; index += 2)
+                {
+                    var age = index / 2;
+                    var maleCoefficent = maleCoefficients.FirstOrDefault(x => x.Age == age)?.Coefficent;
+                    var femaleCoefficent = femaleCoefficients.FirstOrDefault(x => x.Age == age)?.Coefficent;
+                    var maleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age && x.Gender == Gender.Male)?.SummaryByYearSmoothed;
+                    var femaleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age && x.Gender == Gender.Female)?.SummaryByYearSmoothed;
+                    if (maleCoefficent == null || femaleCoefficent == null || maleCount == null || femaleCount == null)
+                        continue;
+
+                    dtos[index].SummaryByYearSmoothed = maleCount.Value * maleCoefficent.Value;
+                    dtos[index + 1].SummaryByYearSmoothed = femaleCount.Value * femaleCoefficent.Value;
+                }
+                forecastByYears.Add(year, dtos);
+            }
+
+            foreach(var chartYear in visualizationYears)
+            {
+                var chartData = forecastByYears[chartYear];
+                (xValues, yValues) = GetValuesForChart(chartData);
+                var series = _painter.PainLinearGraph($"{chartYear}", xValues, yValues);
+                forecastinForOneYear.Series.Add(series);
+            }
+
+            CalculationStorage.Instance.PermanentPopulationForecast = forecastByYears;
+        }
+
+        private List<RegionStatisticsDto> CreateEmptyDtos(int year)
+        {
+            var currentAge = 0;
+            var result = new List<RegionStatisticsDto>(); 
+            for(int i = 0; i < _maxAge; i++)
+            {
+                result.Add(new RegionStatisticsDto
+                {
+                    Gender = Gender.Male,
+                    Age = currentAge,
+                    Year = year
+                });
+                result.Add(new RegionStatisticsDto
+                {
+                    Gender = Gender.Female,
+                    Age = currentAge,
+                    Year = year
+                });
+                currentAge++;
+            }
+
+            return result;
+        }
+
+        private (List<double>, List<double>) GetValuesForChart(List<RegionStatisticsDto> dtos)
+        {
+            var xValues = new List<double>();
+            var yValues = new List<double>();
+
+            foreach (var age in dtos.Select(dto => dto.Age).Distinct())
+            {
+                xValues.Add(age);
+                yValues.Add(dtos.Where(dto => dto.Age == age).Sum(dto => dto.SummaryByYearSmoothed));
+            }
+
+            return (xValues, yValues);
         }
 
         /// <summary>
@@ -962,6 +1059,22 @@ namespace ForecastingWorkingPopulation
                 .ToList();
 
             SetChartYAxisMaximum(forecastionInOneAge, seriesDataList, "PermanentPopulationMaxY");
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
+
+            // Открываем форму EconomyEmploedForm
+            var economyForm = new EconomyEmploedForm();
+            economyForm.Show();
+
+            // Скрываем текущую форму
+            this.Hide();
+
+            // Добавляем обработчик закрытия формы EconomyEmploedForm
+            economyForm.FormClosed += (s, args) => this.Show();
         }
     }
 }

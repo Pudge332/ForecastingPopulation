@@ -34,9 +34,9 @@
             forecast = new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)forecast).BeginInit();
             SuspendLayout();
-            // 
+            //
             // forecast
-            // 
+            //
             chartArea1.Name = "ChartArea1";
             forecast.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
@@ -50,12 +50,24 @@
             forecast.Size = new Size(2081, 746);
             forecast.TabIndex = 0;
             forecast.Text = "chart1";
-            // 
+            //
+            // btnPrev
+            //
+            btnPrev = new Button();
+            btnPrev.Location = new Point(1850, 800);
+            btnPrev.Name = "btnPrev";
+            btnPrev.Size = new Size(150, 40);
+            btnPrev.TabIndex = 1;
+            btnPrev.Text = "Назад";
+            btnPrev.UseVisualStyleBackColor = true;
+            btnPrev.Click += new EventHandler(btnPrev_Click);
+            //
             // ForecastionForm
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            //
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(2105, 923);
+            ClientSize = new Size(2105, 850);
+            Controls.Add(btnPrev);
             Controls.Add(forecast);
             Name = "ForecastionForm";
             Text = "ForecastionForm";
@@ -66,5 +78,6 @@
         #endregion
 
         private System.Windows.Forms.DataVisualization.Charting.Chart forecast;
+        private Button btnPrev;
     }
 }

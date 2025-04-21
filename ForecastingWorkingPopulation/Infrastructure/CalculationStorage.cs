@@ -15,6 +15,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
         private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsDataSmoothed;
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationdRegionStatisticsData;
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationStatisticsDataSmoothed;
+        public Dictionary<int, List<RegionStatisticsDto>> PermanentPopulationForecast { get; set; }
         private int currentRegion;
 
         private List<int> availableYears = new List<int>();
@@ -28,6 +29,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
             economyEmploedRegionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
             permanentPopulationdRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
             permanentPopulationStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
+            PermanentPopulationForecast = new Dictionary<int, List<RegionStatisticsDto>>();
         }
 
         public static CalculationStorage Instance

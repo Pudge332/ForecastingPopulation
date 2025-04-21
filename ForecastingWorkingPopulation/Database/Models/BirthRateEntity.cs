@@ -8,6 +8,6 @@ namespace ForecastingWorkingPopulation.Database.Models
         public int Id { get; set; }
         public int Year { get; set; }
         public int RegionNumber { get; set; }
-        public int BirthRate { get; set; }
+        public double BirthRate { get; set; }
     }
 }

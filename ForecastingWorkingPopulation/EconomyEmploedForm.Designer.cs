@@ -55,6 +55,7 @@
             inEconomyWindowSizeNumericUpDown = new NumericUpDown();
             inEconomyWindowSizeLabel = new Label();
             label1 = new Label();
+            button1 = new Button();
             ((System.ComponentModel.ISupportInitialize)economyEmploed).BeginInit();
             ((System.ComponentModel.ISupportInitialize)inEconomyLevelSmooth).BeginInit();
             inEconomyLevelSmooth.SuspendLayout();
@@ -231,11 +232,22 @@
             label1.TabIndex = 14;
             label1.Text = "Сглаживание";
             // 
+            // button1
+            // 
+            button1.Location = new Point(1583, 914);
+            button1.Name = "button1";
+            button1.Size = new Size(135, 34);
+            button1.TabIndex = 15;
+            button1.Text = "Далее";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
             // EconomyEmploedForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1744, 974);
+            Controls.Add(button1);
             Controls.Add(label1);
             Controls.Add(genderComboBox);
             Controls.Add(smoothingComboBox);
@@ -281,5 +293,8 @@
         private Label inEconomySmoothingLabel;
         private Label inEconomyWindowSizeLabel;
         private Label label1;
+        private Button btnNext;
+        private Button btnPrev;
+        private Button button1;
     }
 }

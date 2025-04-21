@@ -578,5 +578,48 @@ namespace ForecastingWorkingPopulation
             // Обновляем график со сглаживанием, но только если это вызвано из конструктора или из обработчиков событий элементов управления графика уровня занятости
             UpdateInEconomyLevelSmoothChart();
         }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            // Сохраняем настройки перед переходом на предыдущую форму
+            SaveSettings();
+
+            // Закрываем текущую форму
+            this.Close();
+            // Предыдущая форма (PermanentPopulationForm) будет показана автоматически
+            // благодаря обработчику FormClosed в PermanentPopulationForm
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
+
+            // Открываем форму ForecastionForm
+            var forecastForm = new ForecastionForm();
+            forecastForm.Show();
+
+            // Скрываем текущую форму
+            this.Hide();
+
+            // Добавляем обработчик закрытия формы ForecastionForm
+            forecastForm.FormClosed += (s, args) => this.Show();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
+
+            // Открываем форму EconomyEmploedForm
+            var forecastForm = new ForecastionForm();
+            forecastForm.Show();
+
+            // Скрываем текущую форму
+            this.Hide();
+
+            // Добавляем обработчик закрытия формы EconomyEmploedForm
+            forecastForm.FormClosed += (s, args) => this.Show();
+        }
     }
 }

@@ -120,7 +120,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
                         result.Add(new BirthRateEntity
                         {
                             Year = 2024 + (birthRateColumn - 2),
-                            BirthRate = (int)ConvertToInt(birthRateWorksheet.Cells[currentRow, birthRateColumn].Value),
+                            BirthRate = (double)ConvertToDouble(birthRateWorksheet.Cells[currentRow, birthRateColumn].Value) * 1000,
                             RegionNumber = currentRegion.Number
                         });
                 }
@@ -188,6 +188,14 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
         {
             var result = 0;
             int.TryParse(value.ToString(), out result);
+
+            return result;
+        }
+
+        private object ConvertToDouble(object value)
+        {
+            var result = 0.0;
+            double.TryParse(value.ToString(), out result);
 
             return result;
         }
