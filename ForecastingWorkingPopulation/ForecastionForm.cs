@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 using System.Windows.Forms;
 using ForecastingWorkingPopulation.Contracts.Interfaces;
 using ForecastingWorkingPopulation.Database.Repositories;
@@ -13,19 +6,21 @@ using ForecastingWorkingPopulation.Infrastructure;
 using ForecastingWorkingPopulation.Infrastructure.GraphPainting;
 using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
-using System.Windows.Forms.DataVisualization.Charting;
-using static OfficeOpenXml.ExcelErrorValue;
 
 namespace ForecastingWorkingPopulation
 {
-    public partial class ForecastionForm: Form
+    public partial class ForecastionForm : Form
     {
+        private List<double> xValues = new List<double>();
+        private List<double>yValues = new List<double>();
+        private double maxY = 0.0;
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _painter;
 
         public ForecastionForm()
         {
             InitializeComponent();
+            Init();
             _populationRepository = new PopulationRepository();
             _painter = new LinearGraphPainter();
 
@@ -43,6 +38,13 @@ namespace ForecastingWorkingPopulation
             CreateEmployedInEconomyForecast(regionId);
         }
 
+        private void Init()
+        {
+            comboBox1.Items.Add("Все");
+            comboBox1.Items.Add("Мужчины");
+            comboBox1.Items.Add("Женщины");
+        }
+
         /// <summary>
         /// Создает прогноз численности занятого в экономике населения по годам
         /// </summary>
@@ -52,14 +54,32 @@ namespace ForecastingWorkingPopulation
             forecast.Series.Clear();
             forecast.ChartAreas[0].AxisX.Title = "Возраст";
             forecast.ChartAreas[0].AxisY.Title = "Численность занятого населения в тысячах";
-            var xValues = new List<double>();
-            var yValues = new List<double>();
 
             var permanentPopulation = CalculationStorage.Instance.PermanentPopulationForecast;
-            var inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevel();
+            var inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevelSmoothed();
+            if (inEconomyLevelDtos.Any())
+                inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevel();
 
-            var lastYear = permanentPopulation[2045];
-            foreach(var age in lastYear.Select(dto => dto.Age).Distinct())
+            CalculateForecast(permanentPopulation, inEconomyLevelDtos);
+        }
+
+        private void CalculateForecast(Dictionary<int, List<RegionStatisticsDto>> permanentPopulation, List<RegionInEconomyLevelDto> inEconomyLevelDtos)
+        {
+            var xValues = new List<double>();
+            var yValues = new List<double>();
+            var step = (int)numericUpDown1.Value;
+            maxY = 0.0;
+            for (int year = 2025; year < (int)numericUpDown2.Value; year += step)
+                PaintForecast(permanentPopulation, inEconomyLevelDtos, year);
+
+            PaintForecast(permanentPopulation, inEconomyLevelDtos, (int)numericUpDown2.Value);
+        }
+
+        private void PaintForecast(Dictionary<int, List<RegionStatisticsDto>> permanentPopulation, List<RegionInEconomyLevelDto> inEconomyLevelDtos, int year)
+        {
+            var forecastValues = new List<RegionStatisticsDto>();
+            var lastYear = permanentPopulation[year];
+            foreach (var age in lastYear.Select(dto => dto.Age).Distinct())
             {
                 var dtosByYear = lastYear.Where(dto => dto.Age == age);
                 foreach (var dto in dtosByYear)
@@ -68,15 +88,36 @@ namespace ForecastingWorkingPopulation
                     if (inEconomyLevel == null)
                         inEconomyLevel = 0;
 
-                    dto.SummaryByYearSmoothed = dto.SummaryByYearSmoothed * inEconomyLevel.Value;
+                    forecastValues.Add(new RegionStatisticsDto 
+                    { 
+                        SummaryByYearSmoothed = dto.SummaryByYearSmoothed * inEconomyLevel.Value,
+                        Year = dto.Year,
+                        Gender = dto.Gender,
+                        Age = dto.Age
+                    });
                 }
             }
-            (xValues, yValues) = GetValuesForChart(lastYear);
-            forecast.Series.Add(_painter.PainLinearGraph($"Все", xValues, yValues));
-            (xValues, yValues) = GetValuesForChart(lastYear, Gender.Male);
-            forecast.Series.Add(_painter.PainLinearGraph($"Мужчины", xValues, yValues));
-            (xValues, yValues) = GetValuesForChart(lastYear, Gender.Female);
-            forecast.Series.Add(_painter.PainLinearGraph($"Женщины", xValues, yValues));
+            (xValues, yValues) = SelectByGender(forecastValues);
+            maxY = Math.Max(yValues.Max(), maxY);
+            forecast.ChartAreas[0].AxisY.Maximum = maxY * 1.3;
+            forecast.ChartAreas[0].AxisX.Maximum = 70;
+            forecast.ChartAreas[0].AxisX.Minimum = 12;
+            forecast.Series.Add(_painter.PainLinearGraph($"Прогноз на {year}", xValues, yValues));
+        }
+
+        private (List<double>, List<double>) SelectByGender(List<RegionStatisticsDto> dtos)
+        {
+            switch((GenderComboBox)comboBox1.SelectedIndex)
+            {
+                case GenderComboBox.All:
+                    return GetValuesForChart(dtos);
+                    break;
+                case GenderComboBox.Males:
+                    return GetValuesForChart(dtos, Gender.Male);
+                    break;
+                default:
+                    return GetValuesForChart(dtos, Gender.Female);
+            }
         }
 
         private (List<double>, List<double>) GetValuesForChart(List<RegionStatisticsDto> dtos, Gender? gender = null)
@@ -103,6 +144,21 @@ namespace ForecastingWorkingPopulation
             this.Close();
             // Предыдущая форма (EconomyEmploedForm) будет показана автоматически
             // благодаря обработчику FormClosed в EconomyEmploedForm
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
+        }
+
+        private void numericUpDown2_ValueChanged(object sender, EventArgs e)
+        {
+            CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
         }
     }
 }

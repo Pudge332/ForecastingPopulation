@@ -111,9 +111,6 @@ namespace ForecastingWorkingPopulation
                 useSmoothing: (int)smoothingValue > 0);
 
             PaintSmoothChart(economyEmploedSmoothData);
-
-            // Больше не обновляем график уровня занятости при изменении параметров графика занятых в экономике
-            // UpdateInEconomyLevelChart();
         }
 
         private void InEconomySmoothingComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -202,10 +199,16 @@ namespace ForecastingWorkingPopulation
             var regionId = CalculationStorage.Instance.CurrentRegion;
             var economyData = _repository.GetEconomyEmployedInRegion(regionId);
             var populationData = _repository.GetPopulationInRegion(regionId);
-
             // Получаем значение сглаживания из комбобокса
             var smoothingValue = (SmoothComboBox)inEconomySmoothingComboBox.SelectedIndex;
             bool useSmoothing = (int)smoothingValue > 0;
+
+            if(useSmoothing)
+                for (int i = 0; i < (int)smoothingValue; i++)
+                {
+                    economyData = MovingAverageSmoothing(economyData, _inEconomyWindowSize);
+                    populationData = MovingAverageSmoothing(populationData, _inEconomyWindowSize);
+                }
 
             // Очищаем график
             inEconomyLevelSmooth.Series.Clear();
@@ -222,7 +225,7 @@ namespace ForecastingWorkingPopulation
                     Age = g.Key.Age,
                     Gender = g.Key.Gender,
                     SummaryByYear = (int)g.Average(d => d.SummaryByYear),
-                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYear)
+                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYearSmoothed)
                 });
 
             var populationByAgeAndGender = populationData
@@ -232,7 +235,7 @@ namespace ForecastingWorkingPopulation
                     Age = g.Key.Age,
                     Gender = g.Key.Gender,
                     SummaryByYear = (int)g.Average(d => d.SummaryByYear),
-                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYear)
+                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYearSmoothed)
                 });
 
             // Создаем списки коэффициентов для мужчин и женщин
@@ -265,25 +268,6 @@ namespace ForecastingWorkingPopulation
             // Сортируем по возрасту
             maleCoefficients = maleCoefficients.OrderBy(c => c.Age).ToList();
             femaleCoefficients = femaleCoefficients.OrderBy(c => c.Age).ToList();
-
-            // Если нужно сглаживание, применяем его
-            if (useSmoothing)
-            {
-                // Копируем данные в новые списки для сглаживания
-                var maleCoefficientsCopy = new List<RegionStatisticsDto>(maleCoefficients);
-                var femaleCoefficientsCopy = new List<RegionStatisticsDto>(femaleCoefficients);
-
-                // Применяем сглаживание несколько раз в зависимости от выбранного уровня
-                for (int i = 0; i < (int)smoothingValue; i++)
-                {
-                    maleCoefficientsCopy = MovingAverageSmoothing(maleCoefficientsCopy, _inEconomyWindowSize);
-                    femaleCoefficientsCopy = MovingAverageSmoothing(femaleCoefficientsCopy, _inEconomyWindowSize);
-                }
-
-                // Используем сглаженные данные
-                maleCoefficients = maleCoefficientsCopy;
-                femaleCoefficients = femaleCoefficientsCopy;
-            }
 
             // Заполняем серии данными
             foreach (var coefficient in maleCoefficients)

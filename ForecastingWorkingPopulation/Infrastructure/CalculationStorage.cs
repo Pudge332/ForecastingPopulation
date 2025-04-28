@@ -16,7 +16,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationdRegionStatisticsData;
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationStatisticsDataSmoothed;
         public Dictionary<int, List<RegionStatisticsDto>> PermanentPopulationForecast { get; set; }
-        private int currentRegion;
+        public int currentRegion;
 
         private List<int> availableYears = new List<int>();
 
@@ -92,7 +92,8 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             if (economyEmploedRegionStatisticsData.ContainsKey(year))
             {
-                economyEmploedRegionStatisticsData[year] = data;
+                economyEmploedRegionStatisticsData.Remove(year);
+                economyEmploedRegionStatisticsData.Add(year, data);
             }
             else
             {
@@ -104,7 +105,8 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             if (permanentPopulationdRegionStatisticsData.ContainsKey(year))
             {
-                permanentPopulationdRegionStatisticsData[year] = data;
+                permanentPopulationdRegionStatisticsData.Remove(year);
+                permanentPopulationdRegionStatisticsData.Add(year, data);
             }
             else
             {
@@ -126,7 +128,8 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             if (economyEmploedRegionStatisticsDataSmoothed.ContainsKey(year))
             {
-                economyEmploedRegionStatisticsDataSmoothed[year] = data;
+                economyEmploedRegionStatisticsDataSmoothed.Remove(year);
+                economyEmploedRegionStatisticsDataSmoothed.Add(year, data);
             }
             else
             {
@@ -158,7 +161,8 @@ namespace ForecastingWorkingPopulation.Infrastructure
         {
             if (permanentPopulationStatisticsDataSmoothed.ContainsKey(year))
             {
-                permanentPopulationStatisticsDataSmoothed[year] = data;
+                permanentPopulationStatisticsDataSmoothed.Remove(year);
+                permanentPopulationStatisticsDataSmoothed.Add(year, data);
             }
             else
             {

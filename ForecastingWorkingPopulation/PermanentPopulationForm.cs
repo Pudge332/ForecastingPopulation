@@ -193,17 +193,26 @@ namespace ForecastingWorkingPopulation
                 if ((int)smoothComboValue > 0)
                 {
                     yValues = MovingAverageSmoothing(currentGroup, windowSize: _windowSize, (int)smoothComboValue);
-                    var smoothedDtos = UpdateSmoothedValues(group.ToList(), yValues);
-                    CalculationStorage.Instance.StorePermanentPopulationStatisticsSmoothed(group.Key, smoothedDtos);
+                    CalculationStorage.Instance.StorePermanentPopulationStatisticsSmoothed(group.Key, currentGroup.ToList());
                 }
                 else
                 {
                     CalculationStorage.Instance.StorePermanentPopulationRegionStatistics(group.Key, group.ToList());
                 }
 
+                if (genderComboValue == GenderComboBox.All)
+                {
+                    xValues = xValues.Distinct().ToList();
+                    var resultY = new List<double>();
+                    for (int i = 0; i < yValues.Count; i += 2)
+                    {
+                        resultY.Add(yValues[i] + yValues[i + 1]);
+                    }
+                    yValues = resultY;
+                }
+
                 var series = _painter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
                 currentChart.Series.Add(series);
-                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(group.Key, currentGroup.ToList());
 
                 // Добавляем данные серии в список для расчета максимального значения Y
                 seriesDataList.Add(new ChartDataService.SeriesData
@@ -219,6 +228,7 @@ namespace ForecastingWorkingPopulation
 
             // Устанавливаем максимальное значение по оси Y
             SetChartYAxisMaximum(currentChart, seriesDataList, "PermanentPopulationMaxY");
+            CreatePopulationForecastByYeart(CalculationStorage.Instance.CurrentRegion);
         }
 
         /// <summary>
@@ -263,7 +273,7 @@ namespace ForecastingWorkingPopulation
             double newMaxY = maxY * 1.35;
 
             // Используем большее из сохраненного и нового значения
-            double finalMaxY = Math.Max(newMaxY, savedMaxY);
+            double finalMaxY = newMaxY;
 
             // Устанавливаем максимальное значение оси Y
             if (finalMaxY > 0)
@@ -296,7 +306,7 @@ namespace ForecastingWorkingPopulation
             switch(comboValue)
             {
                 case GenderComboBox.All:
-                    return GetAll(dtos.ToList());
+                    return dtos;
 
                 case GenderComboBox.Males:
                     return dtos.Where(dto => dto.Gender == Gender.Male);
@@ -306,26 +316,6 @@ namespace ForecastingWorkingPopulation
             }
 
             return Enumerable.Empty<RegionStatisticsDto>();
-        }
-
-        private IEnumerable<RegionStatisticsDto> GetAll(List<RegionStatisticsDto> dtos)
-        {
-            var summaryByGenderDtos = new List<RegionStatisticsDto>();
-            var ages = dtos.Select(dto => dto.Age).Distinct();
-            foreach(var age in ages)
-            {
-                var dtosByAge = dtos.Where(dto => dto.Age == age);
-                summaryByGenderDtos.Add(new RegionStatisticsDto
-                {
-                    Age = age,
-                    Year = dtosByAge.First().Year,
-                    SummaryByYear = dtosByAge
-                        .DefaultIfEmpty()
-                        .Sum(dto => dto?.SummaryByYear) ?? 0
-                });
-            }
-
-            return summaryByGenderDtos.Cast<RegionStatisticsDto>();
         }
 
         private List<double> MovingAverageSmoothing(IEnumerable<RegionStatisticsDto> data, int windowSize, int smoothingCount = 1)
@@ -553,7 +543,6 @@ namespace ForecastingWorkingPopulation
                 if (coefficent > maxCoefficent)
                     coefficent = maxCoefficent;
 
-                //Сохраняется текущий год, из пары 2019 и 2020 буде сохранен 2019
                 coefficents.Add(new RegionCoefficentDto
                 {
                     Year = currentYearDto.Year,
@@ -678,7 +667,13 @@ namespace ForecastingWorkingPopulation
             var yValues = new List<double>();
 
             // Получаем данные о населении
-            var populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            var populationData = new List<RegionStatisticsDto>();
+            if((SmoothComboBox)smoothingComboBox.SelectedIndex > 0)
+                populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
+            else
+                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            if (!populationData.Any())
+                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
             if (!populationData.Any())
                 populationData = _populationRepository.GetPopulationInRegion(regionId);
 
@@ -688,7 +683,6 @@ namespace ForecastingWorkingPopulation
             var birthRates = _populationRepository.GetBirthRateEntitiesByRegionNumber(regionId);
             var visualizationYears = new List<int> { 2025, 2030, 2035, 2040, 2045 };
             var lastYearData = populationData.Where(dto => dto.Year == 2024).ToList();
-            lastYearData.ForEach(dto => dto.SummaryByYearSmoothed = dto.SummaryByYear);
             (xValues, yValues) = GetValuesForChart(lastYearData);
             var seriesLastYear = _painter.PainLinearGraph($"Факт {2024}", xValues, yValues);
             forecastinForOneYear.Series.Add(seriesLastYear);
@@ -703,11 +697,12 @@ namespace ForecastingWorkingPopulation
                 dtos[1].SummaryByYearSmoothed = birthRates.FirstOrDefault(x => x.Year == year).BirthRate * 0.49;
                 for (int index = 2; index < dtos.Count - 1; index += 2)
                 {
-                    var age = index / 2 - 1;
-                    var maleCoefficent = maleCoefficients.FirstOrDefault(x => x.Age == age)?.Coefficent;
-                    var femaleCoefficent = femaleCoefficients.FirstOrDefault(x => x.Age == age)?.Coefficent;
-                    var maleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age && x.Gender == Gender.Male)?.SummaryByYearSmoothed;
-                    var femaleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age && x.Gender == Gender.Female)?.SummaryByYearSmoothed;
+                    var age = index / 2;
+                    var addValue = age > 2 ? -1 : 0;
+                    var maleCoefficent = maleCoefficients.FirstOrDefault(x => x.Age == age + addValue)?.Coefficent;
+                    var femaleCoefficent = femaleCoefficients.FirstOrDefault(x => x.Age == age + addValue)?.Coefficent;
+                    var maleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age + addValue && x.Gender == Gender.Male)?.SummaryByYearSmoothed;
+                    var femaleCount = forecastByYears[year - 1].FirstOrDefault(x => x.Age == age + addValue && x.Gender == Gender.Female)?.SummaryByYearSmoothed;
                     if (maleCoefficent == null || femaleCoefficent == null || maleCount == null || femaleCount == null)
                         continue;
 
@@ -717,16 +712,52 @@ namespace ForecastingWorkingPopulation
                 forecastByYears.Add(year, dtos);
             }
 
+            var maxYValue = 0.0;
             foreach(var chartYear in visualizationYears)
             {
                 var chartData = forecastByYears[chartYear];
                 (xValues, yValues) = GetValuesForChart(chartData);
+                maxYValue = Math.Max(maxYValue, yValues.Max());
                 var series = _painter.PainLinearGraph($"{chartYear}", xValues, yValues);
                 forecastinForOneYear.Series.Add(series);
             }
 
+            forecastinForOneYear.ChartAreas[0].AxisY.Maximum = maxYValue * 1.3;
             CalculationStorage.Instance.PermanentPopulationForecast = forecastByYears;
             FillForecastInOneAgeChart();
+        }
+
+        private (List<double>, List<double>) SelectByGender(List<RegionStatisticsDto> dtos)
+        {
+            switch ((GenderComboBox)genderComboBox.SelectedIndex)
+            {
+                case GenderComboBox.All:
+                    return GetValuesForChart(dtos);
+                    break;
+                case GenderComboBox.Males:
+                    return GetValuesForChart(dtos, Gender.Male);
+                    break;
+                default:
+                    return GetValuesForChart(dtos, Gender.Female);
+            }
+        }
+
+        private (List<double>, List<double>) GetValuesForChart(List<RegionStatisticsDto> dtos, Gender? gender = null)
+        {
+            var xValues = new List<double>();
+            var yValues = new List<double>();
+
+            foreach (var age in dtos.Select(dto => dto.Age).Distinct())
+            {
+                xValues.Add(age);
+                var currentDtos = dtos.Where(dto => dto.Age == age);
+                if (gender != null)
+                    currentDtos = currentDtos.Where(dto => dto.Gender == gender);
+
+                yValues.Add(currentDtos.Sum(dto => dto.SummaryByYearSmoothed));
+            }
+
+            return (xValues, yValues);
         }
 
         private List<RegionStatisticsDto> CreateEmptyDtos(int year)
@@ -806,8 +837,6 @@ namespace ForecastingWorkingPopulation
                     XValues = years
                 });
             }    
-
-            SetChartYAxisMaximum(forecastionInOneAge, seriesDataList, "PermanentPopulationMaxY");
         }
 
         private void btnNext_Click(object sender, EventArgs e)
