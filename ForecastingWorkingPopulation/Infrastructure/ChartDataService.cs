@@ -9,6 +9,13 @@ namespace ForecastingWorkingPopulation.Infrastructure
 {
     public class ChartDataService
     {
+        private readonly SmoothingCalculator _smoothingCalculator;
+
+        public ChartDataService()
+        {
+            _smoothingCalculator = new SmoothingCalculator();
+        }
+
         public List<SeriesData> PrepareChartData(List<RegionStatisticsDto> dtos, GenderComboBox gender, int windowSize, int smoothingCount, bool useSmoothing)
         {
             var result = new List<SeriesData>();
@@ -21,7 +28,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
                 var selectedData = SelectByGender(gender, yearGroup).ToList();
                 var xValues = selectedData.Select(d => d.Age).Select(Convert.ToDouble).ToList();
                 var yValues = useSmoothing
-                    ? ApplySmoothing(selectedData, windowSize, smoothingCount)
+                    ? _smoothingCalculator.SmoothingValues(selectedData, windowSize, SmoothingType.MovingAverageWindow, smoothingCount)
                     : selectedData.Select(d => Convert.ToDouble(d.SummaryByYear)).ToList();
 
                 result.Add(new SeriesData
@@ -98,32 +105,6 @@ namespace ForecastingWorkingPopulation.Infrastructure
                 default:
                     return Enumerable.Empty<RegionStatisticsDto>();
             }
-        }
-
-        public List<double> ApplySmoothing(IEnumerable<RegionStatisticsDto> data, int windowSize, int smoothingCount)
-        {
-            var result = new List<RegionStatisticsDto>(data);
-            foreach (var item in data)
-                item.SummaryByYearSmoothed = item.SummaryByYear;
-
-            for (int i = 0; i < smoothingCount; i++)
-                result = MovingAverageSmoothing(result, windowSize);
-
-            return result.Select(d => d.SummaryByYearSmoothed).ToList();
-        }
-
-        private List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
-        {
-            for (int i = 0; i < data.Count - windowSize; i++)
-            {
-                data[i].SummaryByYearSmoothed = GetSumInRange(data, i, i + windowSize) / windowSize;
-            }
-            return data;
-        }
-
-        private double GetSumInRange(List<RegionStatisticsDto> data, int start, int end)
-        {
-            return data.Skip(start).Take(end - start).Sum(d => d.SummaryByYearSmoothed);
         }
 
         public class SeriesData

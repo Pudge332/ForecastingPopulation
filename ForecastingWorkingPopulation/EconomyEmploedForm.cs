@@ -12,6 +12,7 @@ namespace ForecastingWorkingPopulation
         private LinearGraphPainter _linearGraphPainter;
         private ChartDataService _chartService;
         private PopulationRepository _repository;
+        private readonly SmoothingCalculator _smoothingCalculator;
         private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
         private int _inEconomyWindowSize = 5; // Значение по умолчанию для размера окна сглаживания графика уровня занятости
@@ -21,6 +22,7 @@ namespace ForecastingWorkingPopulation
             _linearGraphPainter = new LinearGraphPainter();
             _chartService = new ChartDataService();
             _repository = new PopulationRepository();
+            _smoothingCalculator = new SmoothingCalculator();
 
             InitializeComponent();
             InitControls();
@@ -206,8 +208,8 @@ namespace ForecastingWorkingPopulation
             if(useSmoothing)
                 for (int i = 0; i < (int)smoothingValue; i++)
                 {
-                    economyData = MovingAverageSmoothing(economyData, _inEconomyWindowSize);
-                    populationData = MovingAverageSmoothing(populationData, _inEconomyWindowSize);
+                    economyData = _smoothingCalculator.SmoothingValuesDto(economyData, _inEconomyWindowSize, SmoothingType.MovingAverageWindow);
+                    populationData = _smoothingCalculator.SmoothingValuesDto(populationData, _inEconomyWindowSize, SmoothingType.MovingAverageWindow);
                 }
 
             // Очищаем график
@@ -314,26 +316,6 @@ namespace ForecastingWorkingPopulation
 
             // Сохраняем данные в хранилище
             CalculationStorage.Instance.StoreInEconomySmoothedLevel(femaleCoefficientsData);
-        }
-
-        private List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
-        {
-            for (int i = 0; i < data.Count - windowSize; i++)
-            {
-                var smoothingValue = GetSumInRange(data, i, i + windowSize) / windowSize;
-                data[i].SummaryByYearSmoothed = smoothingValue;
-            }
-
-            return data;
-        }
-
-        private double GetSumInRange(List<RegionStatisticsDto> data, int startIndex, int endIndex)
-        {
-            var result = 0.0;
-            for (int i = startIndex; i < endIndex; i++)
-                result += data[i].SummaryByYearSmoothed;
-
-            return result;
         }
 
         /// <summary>

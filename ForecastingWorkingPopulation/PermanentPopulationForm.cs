@@ -13,6 +13,8 @@ namespace ForecastingWorkingPopulation
     {
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _painter;
+        private readonly SmoothingCalculator _smoothingCalculator;
+
         private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
 
@@ -26,6 +28,7 @@ namespace ForecastingWorkingPopulation
             InitializeComponent();
             _populationRepository = new PopulationRepository();
             _painter = new LinearGraphPainter();
+            _smoothingCalculator = new SmoothingCalculator();
             Init();
 
             // Получаем номер текущего региона из хранилища
@@ -192,7 +195,7 @@ namespace ForecastingWorkingPopulation
                 var yValues = currentGroup.Select(dto => dto.SummaryByYear).Select(Convert.ToDouble).ToList();
                 if ((int)smoothComboValue > 0)
                 {
-                    yValues = MovingAverageSmoothing(currentGroup, windowSize: _windowSize, (int)smoothComboValue);
+                    yValues = _smoothingCalculator.SmoothingValues(currentGroup, windowSize: _windowSize, SmoothingType.MovingAverageWindow, (int)smoothComboValue);
                     CalculationStorage.Instance.StorePermanentPopulationStatisticsSmoothed(group.Key, currentGroup.ToList());
                 }
                 else
@@ -293,14 +296,6 @@ namespace ForecastingWorkingPopulation
             }
         }
 
-        private List<RegionStatisticsDto> UpdateSmoothedValues(List<RegionStatisticsDto> dtos, List<double> ySmoothed)
-        {
-            for (int i = dtos.Count - ySmoothed.Count; i < ySmoothed.Count; i++)
-                dtos[i].SummaryByYearSmoothed = ySmoothed[i];
-
-            return dtos;
-        }
-
         private IEnumerable<RegionStatisticsDto> SelectByGender(GenderComboBox comboValue, IEnumerable<RegionStatisticsDto> dtos)
         {
             switch(comboValue)
@@ -316,38 +311,6 @@ namespace ForecastingWorkingPopulation
             }
 
             return Enumerable.Empty<RegionStatisticsDto>();
-        }
-
-        private List<double> MovingAverageSmoothing(IEnumerable<RegionStatisticsDto> data, int windowSize, int smoothingCount = 1)
-        {
-            var result = new List<RegionStatisticsDto>(data);
-            foreach (var item in data)
-                item.SummaryByYearSmoothed = item.SummaryByYear;
-
-            for (int i = 0; i < smoothingCount; i++)
-                result = MovingAverageSmoothing(result, windowSize);
-
-            return result.Select(dto => dto.SummaryByYearSmoothed).ToList();
-        }
-
-        private List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
-        {
-            for (int i = 0; i < data.Count - windowSize; i++)
-            {
-                var smoothingValue = GetSumInRange(data, i, i + windowSize) / windowSize;
-                data[i].SummaryByYearSmoothed = smoothingValue;
-            }
-
-            return data;
-        }
-
-        private double GetSumInRange(List<RegionStatisticsDto> data, int startIndex, int endIndex)
-        {
-            var result = 0.0;
-            for (int i = startIndex; i < endIndex; i++)
-                result += data[i].SummaryByYearSmoothed;
-
-            return result;
         }
 
         private void CalculateAndPaintCoefficent(int regionNumber)
