@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using ForecastingWorkingPopulation.Contracts.Interfaces;
 using ForecastingWorkingPopulation.Database.Repositories;
 using ForecastingWorkingPopulation.Infrastructure;
+using ForecastingWorkingPopulation.Infrastructure.Excel;
 using ForecastingWorkingPopulation.Infrastructure.GraphPainting;
 using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Models.Enums;
@@ -12,10 +13,12 @@ namespace ForecastingWorkingPopulation
     public partial class ForecastionForm : Form
     {
         private List<double> xValues = new List<double>();
-        private List<double>yValues = new List<double>();
+        private List<double> yValues = new List<double>();
         private double maxY = 0.0;
         private readonly IPopulationRepository _populationRepository;
+        private readonly IExcelParser _excelParser;
         private readonly LinearGraphPainter _painter;
+        private Dictionary<int, List<RegionStatisticsDto>> forecastDictionary;
 
         public ForecastionForm()
         {
@@ -23,7 +26,8 @@ namespace ForecastingWorkingPopulation
             Init();
             _populationRepository = new PopulationRepository();
             _painter = new LinearGraphPainter();
-
+            _excelParser = new ExcelParser();
+            forecastDictionary = new Dictionary<int, List<RegionStatisticsDto>>();
             // Получаем номер текущего региона из хранилища
             int regionId = CalculationStorage.Instance.CurrentRegion;
 
@@ -65,11 +69,12 @@ namespace ForecastingWorkingPopulation
 
         private void CalculateForecast(Dictionary<int, List<RegionStatisticsDto>> permanentPopulation, List<RegionInEconomyLevelDto> inEconomyLevelDtos)
         {
+            forecastDictionary = new Dictionary<int, List<RegionStatisticsDto>>();
             var xValues = new List<double>();
             var yValues = new List<double>();
             var step = (int)numericUpDown1.Value;
             maxY = 0.0;
-            for (int year = 2025; year < (int)numericUpDown2.Value; year += step)
+            for (int year = 2024; year < (int)numericUpDown2.Value; year += step)
                 PaintForecast(permanentPopulation, inEconomyLevelDtos, year);
 
             PaintForecast(permanentPopulation, inEconomyLevelDtos, (int)numericUpDown2.Value);
@@ -88,8 +93,8 @@ namespace ForecastingWorkingPopulation
                     if (inEconomyLevel == null)
                         inEconomyLevel = 0;
 
-                    forecastValues.Add(new RegionStatisticsDto 
-                    { 
+                    forecastValues.Add(new RegionStatisticsDto
+                    {
                         SummaryByYearSmoothed = dto.SummaryByYearSmoothed * inEconomyLevel.Value,
                         Year = dto.Year,
                         Gender = dto.Gender,
@@ -103,11 +108,12 @@ namespace ForecastingWorkingPopulation
             forecast.ChartAreas[0].AxisX.Maximum = 70;
             forecast.ChartAreas[0].AxisX.Minimum = 12;
             forecast.Series.Add(_painter.PainLinearGraph($"Прогноз на {year}", xValues, yValues));
+            forecastDictionary.Add(year, forecastValues);
         }
 
         private (List<double>, List<double>) SelectByGender(List<RegionStatisticsDto> dtos)
         {
-            switch((GenderComboBox)comboBox1.SelectedIndex)
+            switch ((GenderComboBox)comboBox1.SelectedIndex)
             {
                 case GenderComboBox.All:
                     return GetValuesForChart(dtos);
@@ -159,6 +165,16 @@ namespace ForecastingWorkingPopulation
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
             CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            folderBrowserDialog1.Description = "Выберите директорию для сохранения прогноза в формате Excel";
+
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                _excelParser.CreateForecastFile(folderBrowserDialog1.SelectedPath, forecastDictionary);
+            }
         }
     }
 }

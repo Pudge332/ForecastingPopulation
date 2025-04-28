@@ -38,6 +38,9 @@
             numericUpDown2 = new NumericUpDown();
             label1 = new Label();
             label2 = new Label();
+            button1 = new Button();
+            openFileDialog1 = new OpenFileDialog();
+            folderBrowserDialog1 = new FolderBrowserDialog();
             ((System.ComponentModel.ISupportInitialize)forecast).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
@@ -62,7 +65,7 @@
             // 
             // btnPrev
             // 
-            btnPrev.Location = new Point(1619, 600);
+            btnPrev.Location = new Point(1575, 593);
             btnPrev.Margin = new Padding(3, 2, 3, 2);
             btnPrev.Name = "btnPrev";
             btnPrev.Size = new Size(131, 30);
@@ -121,11 +124,26 @@
             label2.TabIndex = 6;
             label2.Text = "Шаг прогноза";
             // 
+            // button1
+            // 
+            button1.Location = new Point(1712, 593);
+            button1.Name = "button1";
+            button1.Size = new Size(118, 30);
+            button1.TabIndex = 7;
+            button1.Text = "Сохранить";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
+            // openFileDialog1
+            // 
+            openFileDialog1.FileName = "openFileDialog1";
+            // 
             // ForecastionForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1842, 638);
+            Controls.Add(button1);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(numericUpDown2);
@@ -152,5 +170,8 @@
         private NumericUpDown numericUpDown2;
         private Label label1;
         private Label label2;
+        private Button button1;
+        private OpenFileDialog openFileDialog1;
+        private FolderBrowserDialog folderBrowserDialog1;
     }
 }

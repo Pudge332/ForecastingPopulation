@@ -129,6 +129,71 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             return result;
         }
 
+        public void CreateForecastFile(string path, Dictionary<int, List<RegionStatisticsDto>> forecastDictionary)
+        {
+            const int StartRow = 3;
+            const int ColumnOffset = 4;
+            var forecastName = $"Прогноз до {forecastDictionary.Last().Key} года";
+            var headers = new List<string>() { "Все", "Мужчины", "Женщины" };
+            var yearHeaders = forecastDictionary
+                .Select(x => x.Key.ToString())
+                .ToList();
+            var column = 2;
+            using(var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add(forecastName);
+                worksheet.Cells[2, 1].Value = "Возраст";
+                SetYearHeader(worksheet, yearHeaders, 1);
+                for (int ageRow = StartRow; ageRow < 90; ageRow++)
+                    worksheet.Cells[ageRow, 1].Value = (ageRow - 3).ToString();
+
+                foreach (var oneYearForecast in forecastDictionary)
+                {
+                    var row = StartRow;
+                    var counter = 0;
+                    foreach(var forecastData in oneYearForecast.Value)
+                    {
+                        counter++;
+                        worksheet.Cells[row, column].Value = GetRoundedValue(oneYearForecast.Value
+                            .Where(dto => dto.Age == forecastData.Age)
+                            .Sum(dto => dto.SummaryByYearSmoothed));
+
+                        if(forecastData.Gender == Gender.Male)
+                            worksheet.Cells[row, column + 1].Value = GetRoundedValue(forecastData.SummaryByYearSmoothed);
+                        else
+                            worksheet.Cells[row, column + 2].Value = GetRoundedValue(forecastData.SummaryByYearSmoothed);
+
+                        if (counter % 2 == 0)
+                            row++;
+                    }
+                    SetHeaders(worksheet, headers, 2, column - 1);
+                    column += ColumnOffset;
+                }
+                package.SaveAs(new FileInfo(path + $"/{forecastName}.xlsx"));
+            }
+        }
+
+        private string GetRoundedValue(double value)
+        {
+            return Math.Round(value, 2).ToString();
+        }
+
+        private void SetYearHeader(ExcelWorksheet worksheet, List<string> headers, int row)
+        {
+            var column = 3;
+            for (int i = 0; i < headers.Count; i++)
+            {
+                worksheet.Cells[row, column].Value = headers[i];
+                column += 4;
+            }
+        }
+
+        private void SetHeaders(ExcelWorksheet worksheet, List<string> headers, int row, int startColumn = 0)
+        {
+            for (int i = 0; i < headers.Count; i++)
+                worksheet.Cells[row, i + startColumn + 1].Value = headers[i];
+        }
+
         public List<RegionExcelItem> GetBulitenWorksheets(string path, ref BilutenType type)
         {
             var result = new List<RegionExcelItem>();
