@@ -61,7 +61,7 @@ namespace ForecastingWorkingPopulation
 
             var permanentPopulation = CalculationStorage.Instance.PermanentPopulationForecast;
             var inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevelSmoothed();
-            if (inEconomyLevelDtos.Any())
+            if (!inEconomyLevelDtos.Any())
                 inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevel();
 
             CalculateForecast(permanentPopulation, inEconomyLevelDtos);

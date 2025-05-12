@@ -9,7 +9,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace ForecastingWorkingPopulation
 {
-    public partial class PermanentPopulationForm: Form
+    public partial class PermanentPopulationForm : Form
     {
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _painter;
@@ -17,7 +17,7 @@ namespace ForecastingWorkingPopulation
 
         private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
-
+        private decimal _maxCoefficentValue = 1;
         private int _minAge = 0;
         private int _maxAge = 80;
 
@@ -56,8 +56,6 @@ namespace ForecastingWorkingPopulation
 
         private void Init()
         {
-            label1.Text = "Отключить обрезку коэффицентов > 1";
-            label2.Text = "100% + *% = ";
             label3.Text = "Минимальный возраст";
             label4.Text = "Максимальный возраст";
             numericUpDown2.Value = _minAge;
@@ -228,6 +226,7 @@ namespace ForecastingWorkingPopulation
 
             currentChart.ChartAreas[0].AxisX.Title = "Возраст";
             currentChart.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+            currentChart.ChartAreas[0].AxisX.Minimum = 0;
 
             // Устанавливаем максимальное значение по оси Y
             SetChartYAxisMaximum(currentChart, seriesDataList, "PermanentPopulationMaxY");
@@ -298,7 +297,7 @@ namespace ForecastingWorkingPopulation
 
         private IEnumerable<RegionStatisticsDto> SelectByGender(GenderComboBox comboValue, IEnumerable<RegionStatisticsDto> dtos)
         {
-            switch(comboValue)
+            switch (comboValue)
             {
                 case GenderComboBox.All:
                     return dtos;
@@ -372,6 +371,7 @@ namespace ForecastingWorkingPopulation
             var seriesMale = _painter.PainLinearGraph("КПЖ (мужчины)", xValuesMale, yValuesMale);
             seriesMale.Color = System.Drawing.Color.Blue;
             lifeExpectancyCoefficient.Series.Add(seriesMale);
+            lifeExpectancyCoefficient.ChartAreas[0].AxisX.Minimum = 0;
 
             // Создаем серию для женщин
             var xValuesFemale = new List<double>();
@@ -405,6 +405,7 @@ namespace ForecastingWorkingPopulation
                 foreach (var control in _yearControls.Values)
                 {
                     this.Controls.Remove(control.YearLabel);
+                    control.YearNumericUpDown.ValueChanged -= YearNumerics_ValueChanged;
                     this.Controls.Remove(control.YearNumericUpDown);
                 }
                 _yearControls.Clear();
@@ -417,11 +418,17 @@ namespace ForecastingWorkingPopulation
                     var yearControl = new YearControl(year, new Point(startX, startY));
                     this.Controls.Add(yearControl.YearLabel);
                     this.Controls.Add(yearControl.YearNumericUpDown);
+                    yearControl.YearNumericUpDown.ValueChanged += YearNumericUpDown_ValueChanged;
                     _yearControls[year] = yearControl;
 
                     startX += 70; // Spacing between year controls
                 }
             }
+        }
+
+        private void YearNumericUpDown_ValueChanged(object? sender, EventArgs e)
+        {
+            CalculateCoefficents();
         }
 
         private Dictionary<int, double> GetUsersCoefficents()
@@ -435,10 +442,7 @@ namespace ForecastingWorkingPopulation
 
         private double GetMaxCoefficentValue()
         {
-            if (checkBox1.Checked)
-                return double.PositiveInfinity;
-
-            return 1 + Convert.ToDouble(numericUpDown1.Value);
+            return (double)_maxCoefficentValue;
         }
 
         private List<RegionCoefficentDto> GetAverage(List<RegionCoefficentDto> dtos)
@@ -469,7 +473,7 @@ namespace ForecastingWorkingPopulation
         private double GetWeightedCoefficient(List<RegionCoefficentDto> dtos)
         {
             var weights = GetUsersCoefficents();
-            if(!weights.Any())
+            if (!weights.Any())
                 return dtos.Sum(dto => dto.Coefficent) / dtos.Count();
 
             var coefficent = 0.0;
@@ -528,23 +532,37 @@ namespace ForecastingWorkingPopulation
             _minAge = settings.MinAge;
             _maxAge = settings.MaxAge;
             numericUpDown1.Value = settings.CoefficientLimit;
-            checkBox1.Checked = settings.DisableCoefficientCutoff;
+            //checkBox1.Checked = settings.DisableCoefficientCutoff;
             numericUpDown2.Value = settings.MinAge;
             numericUpDown3.Value = settings.MaxAge;
 
             // Устанавливаем коэффициенты для годов
             if (_yearControls.ContainsKey(2019) && settings.Coefficient2019 >= 0)
-                _yearControls[2019].YearNumericUpDown.Value = (decimal)settings.Coefficient2019;
+                _yearControls[2019].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2019, 0, 1);
             if (_yearControls.ContainsKey(2020) && settings.Coefficient2020 >= 0)
-                _yearControls[2020].YearNumericUpDown.Value = (decimal)settings.Coefficient2020;
+                _yearControls[2020].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2020, 0, 1);
             if (_yearControls.ContainsKey(2021) && settings.Coefficient2021 >= 0)
-                _yearControls[2021].YearNumericUpDown.Value = (decimal)settings.Coefficient2021;
+                _yearControls[2021].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2021, 0, 1);
             if (_yearControls.ContainsKey(2022) && settings.Coefficient2022 >= 0)
-                _yearControls[2022].YearNumericUpDown.Value = (decimal)settings.Coefficient2022;
+                _yearControls[2022].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2022, 0, 1);
             if (_yearControls.ContainsKey(2023) && settings.Coefficient2023 >= 0)
-                _yearControls[2023].YearNumericUpDown.Value = (decimal)settings.Coefficient2023;
+                _yearControls[2023].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2023, 0, 1);
             if (_yearControls.ContainsKey(2024) && settings.Coefficient2024 >= 0)
-                _yearControls[2024].YearNumericUpDown.Value = (decimal)settings.Coefficient2024;
+                _yearControls[2024].YearNumericUpDown.Value = CheckValue((decimal)settings.Coefficient2024, 0, 1);
+        }
+
+        private decimal CheckValue(decimal value, decimal min, decimal max)
+        {
+            if (value <= max && value >= min)
+                return value;
+
+            if (value > max)
+                return max;
+
+            if (value < min)
+                return min;
+
+            return value;
         }
 
         private void SaveRegionCoefficientSettings(int regionNumber)
@@ -555,7 +573,7 @@ namespace ForecastingWorkingPopulation
                 MinAge = (int)numericUpDown2.Value,
                 MaxAge = (int)numericUpDown3.Value,
                 CoefficientLimit = numericUpDown1.Value,
-                DisableCoefficientCutoff = checkBox1.Checked
+                //DisableCoefficientCutoff = checkBox1.Checked
             };
 
             // Сохраняем коэффициенты для годов
@@ -575,7 +593,7 @@ namespace ForecastingWorkingPopulation
             _populationRepository.SaveRegionCoefficientSettings(settings);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void CalculateCoefficents()
         {
             _minAge = (int)numericUpDown2.Value;
             _maxAge = (int)numericUpDown3.Value;
@@ -592,6 +610,7 @@ namespace ForecastingWorkingPopulation
 
             // Создаем прогноз численности постоянного населения по годам
             CreatePopulationForecastByYeart(regionId);
+
         }
 
         private class YearControl
@@ -613,10 +632,10 @@ namespace ForecastingWorkingPopulation
                     Location = new Point(location.X, location.Y + 20),
                     Width = 60,
                     DecimalPlaces = 2,
-                    Increment = 0.1m,
+                    Increment = 0.01m,
                     Minimum = 0,
-                    Maximum = 10,
-                    Value = 1
+                    Maximum = 1,
+                    Value = 1,
                 };
             }
         }
@@ -626,12 +645,13 @@ namespace ForecastingWorkingPopulation
             forecastinForOneYear.Series.Clear();
             forecastinForOneYear.ChartAreas[0].AxisX.Title = "Возраст";
             forecastinForOneYear.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+            forecastinForOneYear.ChartAreas[0].AxisX.Minimum = 0;
             var xValues = new List<double>();
             var yValues = new List<double>();
 
             // Получаем данные о населении
             var populationData = new List<RegionStatisticsDto>();
-            if((SmoothComboBox)smoothingComboBox.SelectedIndex > 0)
+            if ((SmoothComboBox)smoothingComboBox.SelectedIndex > 0)
                 populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
             else
                 populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
@@ -676,7 +696,7 @@ namespace ForecastingWorkingPopulation
             }
 
             var maxYValue = 0.0;
-            foreach(var chartYear in visualizationYears)
+            foreach (var chartYear in visualizationYears)
             {
                 var chartData = forecastByYears[chartYear];
                 (xValues, yValues) = GetValuesForChart(chartData);
@@ -726,8 +746,8 @@ namespace ForecastingWorkingPopulation
         private List<RegionStatisticsDto> CreateEmptyDtos(int year)
         {
             var currentAge = 0;
-            var result = new List<RegionStatisticsDto>(); 
-            for(int i = 0; i < _maxAge; i++)
+            var result = new List<RegionStatisticsDto>();
+            for (int i = 0; i < _maxAge; i++)
             {
                 result.Add(new RegionStatisticsDto
                 {
@@ -776,7 +796,7 @@ namespace ForecastingWorkingPopulation
                 years.Add(year);
 
             var forecastValues = CalculationStorage.Instance.PermanentPopulationForecast;
-            foreach(var currentValues in forecastValues.Values)
+            foreach (var currentValues in forecastValues.Values)
             {
                 for (int age = 10; age < 80; age += 10)
                 {
@@ -799,7 +819,7 @@ namespace ForecastingWorkingPopulation
                     YValues = values.Value,
                     XValues = years
                 });
-            }    
+            }
         }
 
         private void btnNext_Click(object sender, EventArgs e)
@@ -816,6 +836,46 @@ namespace ForecastingWorkingPopulation
 
             // Добавляем обработчик закрытия формы EconomyEmploedForm
             economyForm.FormClosed += (s, args) => this.Show();
+        }
+
+        private void RadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+
+            if (radioButton != null && radioButton.Checked)
+            {
+                switch(radioButton.Name)
+                {
+                    case "NoTrim":
+                        _maxCoefficentValue = decimal.MaxValue;
+                        break;
+                    case "TrimToOne":
+                        _maxCoefficentValue = 1;
+                        break;
+                    default:
+                        _maxCoefficentValue = 1 + numericUpDown1.Value;
+                        break;
+                }
+                CalculateCoefficents();
+            }
+        }
+
+        private void YearNumerics_ValueChanged(object sender, EventArgs e)
+        {
+            CalculateCoefficents();
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            TrimToDelta.Text = $"Обрезать до {100 + numericUpDown1.Value}%";
+            _maxCoefficentValue = 1 + numericUpDown1.Value / (decimal)100;
+            if (!TrimToDelta.Checked)
+            {
+                TrimToDelta.Checked = true;
+                TrimToOne.Checked = false;
+                NoTrim.Checked = false;
+            }
+            CalculateCoefficents();
         }
     }
 }

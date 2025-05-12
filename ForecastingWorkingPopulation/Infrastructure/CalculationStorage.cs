@@ -25,6 +25,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
             lifeExpectancyDataMale = new List<RegionCoefficentDto>();
             lifeExpectancyDataFemale = new List<RegionCoefficentDto>();
             inEconomyLevelData = new List<RegionInEconomyLevelDto>();
+            inEconomyLevelDataSmoothed = new List<RegionInEconomyLevelDto>();
             economyEmploedRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
             economyEmploedRegionStatisticsDataSmoothed = new Dictionary<int, List<RegionStatisticsDto>>();
             permanentPopulationdRegionStatisticsData = new Dictionary<int, List<RegionStatisticsDto>>();
