@@ -204,7 +204,7 @@ namespace ForecastingWorkingPopulation
             //economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValuesSmoothed();
             //if (!economyData.Any())
             //    economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues();
-            if(!economyData.Any())
+            if (!economyData.Any())
                 economyData = _repository.GetEconomyEmployedInRegion(regionId);
 
             var populationData = new List<RegionStatisticsDto>();
@@ -218,7 +218,7 @@ namespace ForecastingWorkingPopulation
             var smoothingValue = (SmoothComboBox)inEconomySmoothingComboBox.SelectedIndex;
             bool useSmoothing = (int)smoothingValue > 0;
 
-            if(useSmoothing)
+            if (useSmoothing)
                 for (int i = 0; i < (int)smoothingValue; i++)
                 {
                     economyData = _smoothingCalculator.SmoothingValuesDto(economyData, _inEconomyWindowSize, SmoothingType.MovingAverageWindow);
@@ -494,54 +494,54 @@ namespace ForecastingWorkingPopulation
             var malesSeries = new Series("Мужчины") { ChartType = SeriesChartType.Line };
             var femalesSeries = new Series("Женщины") { ChartType = SeriesChartType.Line };
 
-                // Группируем данные по возрасту и полу для расчета средних значений
-                var economyByAgeAndGender = economyData
-                    .GroupBy(d => new { d.Age, d.Gender })
-                    .Select(g => new
-                    {
-                        Age = g.Key.Age,
-                        Gender = g.Key.Gender,
-                        AverageEconomy = g.Average(d => d.SummaryByYear)
-                    });
-
-                var populationByAgeAndGender = populationData
-                    .GroupBy(d => new { d.Age, d.Gender })
-                    .Select(g => new
-                    {
-                        Age = g.Key.Age,
-                        Gender = g.Key.Gender,
-                        AveragePopulation = g.Average(d => d.SummaryByYear)
-                    });
-
-                // Объединяем данные и вычисляем коэффициенты
-                var coefficients = economyByAgeAndGender
-                    .Join(populationByAgeAndGender,
-                        e => new { e.Age, e.Gender },
-                        p => new { p.Age, p.Gender },
-                        (e, p) => new
-                        {
-                            Age = e.Age,
-                            Gender = e.Gender,
-                            Coefficient = p.AveragePopulation > 0 ? e.AverageEconomy / p.AveragePopulation : 0
-                        })
-                    .OrderBy(c => c.Age)
-                    .ToList();
-
-                // Заполняем серии данными
-                foreach (var item in coefficients.Where(c => c.Gender == Gender.Male))
+            // Группируем данные по возрасту и полу для расчета средних значений
+            var economyByAgeAndGender = economyData
+                .GroupBy(d => new { d.Age, d.Gender })
+                .Select(g => new
                 {
-                    malesSeries.Points.AddXY(item.Age, item.Coefficient);
-                }
+                    Age = g.Key.Age,
+                    Gender = g.Key.Gender,
+                    AverageEconomy = g.Average(d => d.SummaryByYear)
+                });
 
-                foreach (var item in coefficients.Where(c => c.Gender == Gender.Female))
+            var populationByAgeAndGender = populationData
+                .GroupBy(d => new { d.Age, d.Gender })
+                .Select(g => new
                 {
-                    femalesSeries.Points.AddXY(item.Age, item.Coefficient);
-                }
+                    Age = g.Key.Age,
+                    Gender = g.Key.Gender,
+                    AveragePopulation = g.Average(d => d.SummaryByYear)
+                });
 
-                // Добавляем серии на график
-                inEconomyLevel.Series.Add(malesSeries);
-                inEconomyLevel.Series.Add(femalesSeries);
-            
+            // Объединяем данные и вычисляем коэффициенты
+            var coefficients = economyByAgeAndGender
+                .Join(populationByAgeAndGender,
+                    e => new { e.Age, e.Gender },
+                    p => new { p.Age, p.Gender },
+                    (e, p) => new
+                    {
+                        Age = e.Age,
+                        Gender = e.Gender,
+                        Coefficient = p.AveragePopulation > 0 ? e.AverageEconomy / p.AveragePopulation : 0
+                    })
+                .OrderBy(c => c.Age)
+                .ToList();
+
+            // Заполняем серии данными
+            foreach (var item in coefficients.Where(c => c.Gender == Gender.Male))
+            {
+                malesSeries.Points.AddXY(item.Age, item.Coefficient);
+            }
+
+            foreach (var item in coefficients.Where(c => c.Gender == Gender.Female))
+            {
+                femalesSeries.Points.AddXY(item.Age, item.Coefficient);
+            }
+
+            // Добавляем серии на график
+            inEconomyLevel.Series.Add(malesSeries);
+            inEconomyLevel.Series.Add(femalesSeries);
+
             // Настраиваем оси
             inEconomyLevel.ChartAreas[0].AxisX.Title = "Возраст";
             inEconomyLevel.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике";
@@ -645,7 +645,7 @@ namespace ForecastingWorkingPopulation
                 if (!malesSeries.Points.Any() || !femalesSeries.Points.Any())
                     continue;
 
-                if((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Males)
+                if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Males)
                     inEconomyLevel.Series.Add(malesSeries);
                 if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Females)
                     inEconomyLevel.Series.Add(femalesSeries);
@@ -739,6 +739,12 @@ namespace ForecastingWorkingPopulation
 
             // Добавляем обработчик закрытия формы EconomyEmploedForm
             forecastForm.FormClosed += (s, args) => this.Show();
+        }
+
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            // Скрываем текущую форму
+            this.Close();
         }
     }
 }

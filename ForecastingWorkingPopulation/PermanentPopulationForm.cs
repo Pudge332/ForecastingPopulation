@@ -6,6 +6,7 @@ using ForecastingWorkingPopulation.Models.Dto;
 using ForecastingWorkingPopulation.Infrastructure;
 using ForecastingWorkingPopulation.Models.Enums;
 using System.Windows.Forms.DataVisualization.Charting;
+using ForecastingWorkingPopulation.Infrastructure.Excel;
 
 namespace ForecastingWorkingPopulation
 {
@@ -14,6 +15,7 @@ namespace ForecastingWorkingPopulation
         private readonly IPopulationRepository _populationRepository;
         private readonly LinearGraphPainter _painter;
         private readonly SmoothingCalculator _smoothingCalculator;
+        private readonly IExcelParser _excelParser;
 
         private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
@@ -29,6 +31,7 @@ namespace ForecastingWorkingPopulation
             _populationRepository = new PopulationRepository();
             _painter = new LinearGraphPainter();
             _smoothingCalculator = new SmoothingCalculator();
+            _excelParser = new ExcelParser();
             Init();
 
             // Получаем номер текущего региона из хранилища
@@ -844,7 +847,7 @@ namespace ForecastingWorkingPopulation
 
             if (radioButton != null && radioButton.Checked)
             {
-                switch(radioButton.Name)
+                switch (radioButton.Name)
                 {
                     case "NoTrim":
                         _maxCoefficentValue = decimal.MaxValue;
@@ -876,6 +879,22 @@ namespace ForecastingWorkingPopulation
                 NoTrim.Checked = false;
             }
             CalculateCoefficents();
+        }
+
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            folderBrowserDialog1.Description = "Выберите директорию для сохранения прогноза в формате Excel";
+            var regionName = RegionRepository.GetRegionNameById(CalculationStorage.Instance.CurrentRegion);
+
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности постоянного населения({regionName})", CalculationStorage.Instance.PermanentPopulationForecast);
+            }
+        }
+
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            this.Hide();
         }
     }
 }

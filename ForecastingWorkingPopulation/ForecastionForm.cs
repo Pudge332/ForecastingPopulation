@@ -109,6 +109,48 @@ namespace ForecastingWorkingPopulation
             forecast.ChartAreas[0].AxisX.Minimum = 12;
             forecast.Series.Add(_painter.PainLinearGraph($"Прогноз на {year}", xValues, yValues));
             forecastDictionary.Add(year, forecastValues);
+            FillForecastInOneAgeChart();
+        }
+
+        /// <summary>
+        /// Заполняет график прогноза численности населения по возрастным группам
+        /// </summary>
+        /// <param name="regionId">Идентификатор региона</param>
+        private void FillForecastInOneAgeChart()
+        {
+            forecastInOneAge.Series.Clear();
+            forecastInOneAge.ChartAreas[0].AxisX.Title = "Год";
+            forecastInOneAge.ChartAreas[0].AxisY.Title = "Численность населения в тысячах";
+            var ageGroupps = new Dictionary<int, List<double>>();
+            var years = new List<double>();
+            for (int year = 2024; year < 2045; year++)
+                years.Add(year);
+
+            var forecastValues = forecastDictionary;
+            foreach (var currentValues in forecastValues.Values)
+            {
+                for (int age = 10; age < 80; age += 10)
+                {
+                    var valuesInDictionary = new List<double>();
+                    var currentYearGroupp = currentValues.Where(dto => dto.Age == age).ToList();
+                    if (ageGroupps.TryGetValue(age, out valuesInDictionary))
+                        valuesInDictionary.Add(currentYearGroupp.Sum(x => x.SummaryByYearSmoothed));
+                    else
+                        ageGroupps.Add(age, new List<double>() { currentYearGroupp.Sum(x => x.SummaryByYearSmoothed) });
+                }
+            }
+            var seriesDataList = new List<ChartDataService.SeriesData>();
+            foreach (var values in ageGroupps)
+            {
+                var series = _painter.PainLinearGraph($"Возраст: {values.Key}", years, values.Value);
+                forecastInOneAge.Series.Add(series);
+                seriesDataList.Add(new ChartDataService.SeriesData
+                {
+                    SeriesName = "Возраст: {values.Key}",
+                    YValues = values.Value,
+                    XValues = years
+                });
+            }
         }
 
         private (List<double>, List<double>) SelectByGender(List<RegionStatisticsDto> dtos)
@@ -170,10 +212,11 @@ namespace ForecastingWorkingPopulation
         private void button1_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.Description = "Выберите директорию для сохранения прогноза в формате Excel";
+            var regionName = RegionRepository.GetRegionNameById(CalculationStorage.Instance.CurrentRegion);
 
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
-                _excelParser.CreateForecastFile(folderBrowserDialog1.SelectedPath, forecastDictionary);
+                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности занятого в экономике населения({regionName})", forecastDictionary);
             }
         }
     }

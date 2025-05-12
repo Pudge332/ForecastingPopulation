@@ -69,6 +69,9 @@
             label5 = new Label();
             label6 = new Label();
             label7 = new Label();
+            SaveButton = new Button();
+            BackButton = new Button();
+            folderBrowserDialog1 = new FolderBrowserDialog();
             ((System.ComponentModel.ISupportInitialize)lifeExpectancyCoefficient).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
@@ -345,11 +348,33 @@
             label7.TabIndex = 28;
             label7.Text = "Прогноз постоянного населения";
             // 
+            // SaveButton
+            // 
+            SaveButton.Location = new Point(1433, 810);
+            SaveButton.Name = "SaveButton";
+            SaveButton.Size = new Size(131, 30);
+            SaveButton.TabIndex = 29;
+            SaveButton.Text = "Сохранить";
+            SaveButton.UseVisualStyleBackColor = true;
+            SaveButton.Click += SaveButton_Click;
+            // 
+            // BackButton
+            // 
+            BackButton.Location = new Point(1570, 810);
+            BackButton.Name = "BackButton";
+            BackButton.Size = new Size(131, 30);
+            BackButton.TabIndex = 30;
+            BackButton.Text = "Назад";
+            BackButton.UseVisualStyleBackColor = true;
+            BackButton.Click += BackButton_Click;
+            // 
             // PermanentPopulationForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1850, 871);
+            Controls.Add(BackButton);
+            Controls.Add(SaveButton);
             Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(label5);
@@ -415,5 +440,8 @@
         private Label label5;
         private Label label6;
         private Label label7;
+        private Button SaveButton;
+        private Button BackButton;
+        private FolderBrowserDialog folderBrowserDialog1;
     }
 }

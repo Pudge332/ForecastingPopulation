@@ -60,6 +60,7 @@
             label3 = new Label();
             label4 = new Label();
             label5 = new Label();
+            BackButton = new Button();
             ((System.ComponentModel.ISupportInitialize)economyEmploed).BeginInit();
             ((System.ComponentModel.ISupportInitialize)inEconomyLevelSmooth).BeginInit();
             inEconomyLevelSmooth.SuspendLayout();
@@ -282,11 +283,22 @@
             label5.TabIndex = 19;
             label5.Text = "Уровень занятости для расчета прогноза";
             // 
+            // BackButton
+            // 
+            BackButton.Location = new Point(1447, 888);
+            BackButton.Name = "BackButton";
+            BackButton.Size = new Size(135, 34);
+            BackButton.TabIndex = 20;
+            BackButton.Text = "Назад";
+            BackButton.UseVisualStyleBackColor = true;
+            BackButton.Click += BackButton_Click;
+            // 
             // EconomyEmploedForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1744, 934);
+            Controls.Add(BackButton);
             Controls.Add(label5);
             Controls.Add(label4);
             Controls.Add(label3);
@@ -344,5 +356,6 @@
         private Label label3;
         private Label label4;
         private Label label5;
+        private Button BackButton;
     }
 }

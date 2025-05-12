@@ -31,6 +31,9 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             forecast = new System.Windows.Forms.DataVisualization.Charting.Chart();
             btnPrev = new Button();
             comboBox1 = new ComboBox();
@@ -41,9 +44,13 @@
             button1 = new Button();
             openFileDialog1 = new OpenFileDialog();
             folderBrowserDialog1 = new FolderBrowserDialog();
+            forecastInOneAge = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            label3 = new Label();
+            label4 = new Label();
             ((System.ComponentModel.ISupportInitialize)forecast).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)forecastInOneAge).BeginInit();
             SuspendLayout();
             // 
             // forecast
@@ -52,14 +59,14 @@
             forecast.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
             forecast.Legends.Add(legend1);
-            forecast.Location = new Point(10, 11);
+            forecast.Location = new Point(10, 44);
             forecast.Margin = new Padding(3, 2, 3, 2);
             forecast.Name = "forecast";
             series1.ChartArea = "ChartArea1";
             series1.Legend = "Legend1";
             series1.Name = "Series1";
             forecast.Series.Add(series1);
-            forecast.Size = new Size(1821, 560);
+            forecast.Size = new Size(1020, 544);
             forecast.TabIndex = 0;
             forecast.Text = "chart1";
             // 
@@ -77,7 +84,7 @@
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(1709, 455);
+            comboBox1.Location = new Point(909, 471);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 2;
@@ -86,7 +93,7 @@
             // numericUpDown1
             // 
             numericUpDown1.Increment = new decimal(new int[] { 3, 0, 0, 0 });
-            numericUpDown1.Location = new Point(1711, 543);
+            numericUpDown1.Location = new Point(908, 559);
             numericUpDown1.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
             numericUpDown1.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numericUpDown1.Name = "numericUpDown1";
@@ -97,7 +104,7 @@
             // 
             // numericUpDown2
             // 
-            numericUpDown2.Location = new Point(1711, 499);
+            numericUpDown2.Location = new Point(908, 515);
             numericUpDown2.Maximum = new decimal(new int[] { 2045, 0, 0, 0 });
             numericUpDown2.Minimum = new decimal(new int[] { 2027, 0, 0, 0 });
             numericUpDown2.Name = "numericUpDown2";
@@ -109,7 +116,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(1709, 481);
+            label1.Location = new Point(906, 497);
             label1.Name = "label1";
             label1.Size = new Size(52, 15);
             label1.TabIndex = 5;
@@ -118,7 +125,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(1711, 525);
+            label2.Location = new Point(908, 541);
             label2.Name = "label2";
             label2.Size = new Size(83, 15);
             label2.TabIndex = 6;
@@ -138,25 +145,63 @@
             // 
             openFileDialog1.FileName = "openFileDialog1";
             // 
+            // forecastInOneAge
+            // 
+            chartArea2.Name = "ChartArea1";
+            forecastInOneAge.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            forecastInOneAge.Legends.Add(legend2);
+            forecastInOneAge.Location = new Point(1038, 44);
+            forecastInOneAge.Name = "forecastInOneAge";
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            forecastInOneAge.Series.Add(series2);
+            forecastInOneAge.Size = new Size(792, 544);
+            forecastInOneAge.TabIndex = 8;
+            forecastInOneAge.Text = "chart1";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(371, 9);
+            label3.Name = "label3";
+            label3.Size = new Size(269, 15);
+            label3.TabIndex = 9;
+            label3.Text = "Прогноз вовлеченного в экономику населения";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(1233, 9);
+            label4.Name = "label4";
+            label4.Size = new Size(454, 15);
+            label4.TabIndex = 10;
+            label4.Text = "Возрастной профиль прогноза вовлеченного в экономику населения населения";
+            // 
             // ForecastionForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1842, 638);
-            Controls.Add(button1);
+            Controls.Add(label4);
+            Controls.Add(label3);
+            Controls.Add(forecastInOneAge);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(numericUpDown2);
             Controls.Add(numericUpDown1);
             Controls.Add(comboBox1);
-            Controls.Add(btnPrev);
             Controls.Add(forecast);
+            Controls.Add(btnPrev);
+            Controls.Add(button1);
             Margin = new Padding(3, 2, 3, 2);
             Name = "ForecastionForm";
             Text = "ForecastionForm";
             ((System.ComponentModel.ISupportInitialize)forecast).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).EndInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)forecastInOneAge).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -173,5 +218,8 @@
         private Button button1;
         private OpenFileDialog openFileDialog1;
         private FolderBrowserDialog folderBrowserDialog1;
+        private System.Windows.Forms.DataVisualization.Charting.Chart forecastInOneAge;
+        private Label label3;
+        private Label label4;
     }
 }

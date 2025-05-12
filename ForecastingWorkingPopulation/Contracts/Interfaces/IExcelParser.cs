@@ -23,6 +23,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         public List<RegionStatisticsDto> ParseBiluten(string path, string workSheetName, int columnOffset);
         public List<BirthRateEntity> ParseBirthRateBiluten(string path);
         public void CreateForecastFile(string path, Dictionary<int, List<RegionStatisticsDto>> forecastDictionary);
+        public void FillForecastFile(string path, string regionName, string forecastName, Dictionary<int, List<RegionStatisticsDto>> forecastDictionary);
         public List<RegionExcelItem> GetBulitenWorksheets(string path, ref BilutenType type);
     }
 }
