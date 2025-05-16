@@ -188,6 +188,9 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
 
                     var currentRow = StartRow;
                     var valuesByAge = values.GroupBy(x => x.Age);
+                    var summaryMalesCount = 0.0;
+                    var summaryFemalesCount = 0.0;
+                    var summaryAllCount = 0.0;
                     foreach (var valueByAge in valuesByAge)
                     {
                         if (currentRow - 4 >= rowsCount)
@@ -200,18 +203,24 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
                             {
                                 maleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
                                 maleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                                summaryMalesCount += value.SummaryByYearSmoothed;
                             }
                             else
                             {
                                 femaleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
                                 femaleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                                summaryFemalesCount += value.SummaryByYearSmoothed;
                             }
                             allValue += value.SummaryByYearSmoothed;
                         }
                         allWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(allValue);
+                        summaryAllCount += allValue; 
                         allWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
                         currentRow++;
                     }
+                    maleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryMalesCount);
+                    femaleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryFemalesCount);
+                    allWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryAllCount);
                     currentColumn++;
                 }
 

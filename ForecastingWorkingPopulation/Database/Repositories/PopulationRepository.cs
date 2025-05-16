@@ -19,7 +19,7 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
         private void Init(PopulationContext dbContext)
         {
-            //dbContext.Database.Migrate();
+            dbContext.Database.Migrate();
             FillRegions();
         }
 
@@ -220,6 +220,8 @@ namespace ForecastingWorkingPopulation.Database.Repositories
                 existingSettings.SelectedGender = settings.SelectedGender;
                 existingSettings.SelectedSmoothing = settings.SelectedSmoothing;
                 existingSettings.WindowSize = settings.WindowSize;
+                existingSettings.DeltaValue = settings.DeltaValue;
+                existingSettings.SelectedCoefficientProcessing = settings.SelectedCoefficientProcessing;
             }
             else
             {
@@ -251,11 +253,43 @@ namespace ForecastingWorkingPopulation.Database.Repositories
                 existingSettings.WindowSize = settings.WindowSize;
                 existingSettings.InEconomySelectedSmoothing = settings.InEconomySelectedSmoothing;
                 existingSettings.InEconomyWindowSize = settings.InEconomyWindowSize;
+                existingSettings.InEconomyLevelMaxAge = settings.InEconomyLevelMaxAge;
+                existingSettings.InEconomyLevelMinAge = settings.InEconomyLevelMinAge;
             }
             else
             {
                 // Добавляем новые настройки
                 _dbContext.RegionEconomyEmploedFormSettings.Add(settings);
+            }
+
+            _dbContext.SaveChanges();
+        }
+
+        public RegionForecastionFormSettingsEntity? GetRegionForecastionFormSettings(int regionNumber)
+        {
+            if (!_dbContext.RegionForecastionFormSettings.Any())
+                return null;
+
+            return _dbContext.RegionForecastionFormSettings
+                .FirstOrDefault(settings => settings.RegionNumber == regionNumber);
+        }
+
+        public void SaveRegionForecastionFormSettings(RegionForecastionFormSettingsEntity settings)
+        {
+            var existingSettings = GetRegionForecastionFormSettings(settings.RegionNumber);
+
+            if (existingSettings != null)
+            {
+                // Обновляем существующие настройки
+                existingSettings.SelectedGender = settings.SelectedGender;
+                existingSettings.ForecastStep = settings.ForecastStep;
+                existingSettings.ForecastEndYear = settings.ForecastEndYear;
+                existingSettings.ForecastMaxY = settings.ForecastMaxY;
+            }
+            else
+            {
+                // Добавляем новые настройки
+                _dbContext.RegionForecastionFormSettings.Add(settings);
             }
 
             _dbContext.SaveChanges();

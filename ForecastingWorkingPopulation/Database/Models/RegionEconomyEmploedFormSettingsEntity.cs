@@ -58,5 +58,7 @@ namespace ForecastingWorkingPopulation.Database.Models
         /// Максимальное значение по оси Y для графика уровня занятости в экономике со сглаживанием
         /// </summary>
         public double InEconomyLevelSmoothMaxY { get; set; }
+        public int InEconomyLevelMinAge { get; set; }
+        public int InEconomyLevelMaxAge { get; set; }
     }
 }

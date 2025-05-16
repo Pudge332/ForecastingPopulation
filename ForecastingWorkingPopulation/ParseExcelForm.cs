@@ -195,22 +195,54 @@ namespace ForecastingWorkingPopulation
             return pathShards.Last();
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            var boxChecked = "Население в экономике";
-            var boxUnChecked = "Постоянное население";
-        }
-
         private void button2_Click(object sender, EventArgs e)
         {
             // Настройка диалога выбора файла
             openFileDialog1.Filter = "Excel Files|*.xls;*.xlsx";
             openFileDialog1.Title = "Выберите файл Бюллетени в формате Excel";
 
-            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var filePath = openFileDialog1.FileName;
                 ParseBirthRateBiluten(filePath);
+            }
+        }
+
+        private void massImportFiles_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Multiselect = true;
+            progressBar1.Visible = true;
+            var regionCount = 0;
+            var rowsCount = 0;
+            var regions = RegionRepository.GetRegions();
+            // Настройка диалога выбора файла
+            openFileDialog1.Filter = "Excel Files|*.xls;*.xlsx";
+            openFileDialog1.Title = "Выберите файл опросов в формате Excel";
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                var filePaths = openFileDialog1.FileNames;
+
+                foreach(var path in filePaths)
+                {
+                    var fileName = GetFileName(path)?.Replace(".xlsx", "");
+                    if (fileName is null)
+                        continue;
+
+                    var region = regions.FirstOrDefault(x => x.Name.ToLowerInvariant() == fileName.ToLowerInvariant());
+                    if (region is null)
+                        continue;
+                    var dtos = ParseRegionStatistic(path);
+                    SaveDataToDatabase(region.Number, "Население в экономике", dtos, false);
+                    regionCount++;
+                    rowsCount += dtos?.Count() ?? 0;
+                    UpdateProgressBar(regionCount * 100 / filePaths.Count());
+                }
+
+                progressBar1.Value = 0;
+                progressBar1.Visible = false;
+                if (regionCount > 0)
+                    NotificationForm.ShowSuccess($"По {regionCount} регионам успешно загруженно {rowsCount} строк");
             }
         }
     }

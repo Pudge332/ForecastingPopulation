@@ -10,6 +10,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         public List<RegionInfoEntity> GetAllRegions();
         public void SaveBirthRateEntyties(List<BirthRateEntity> dtos);
         public List<BirthRateEntity>? GetBirthRateEntitiesByRegionNumber(int regionNumber);
+        public RegionForecastionFormSettingsEntity? GetRegionForecastionFormSettings(int regionNumber);
         public void SaveEmployedEconomyEntyties(int regionNumber, List<RegionStatisticsDto> dtos);
         public void SavePermanentPopulationEntyties(int regionNumber, List<RegionStatisticsDto> dtos);
 
@@ -25,6 +26,7 @@ namespace ForecastingWorkingPopulation.Contracts.Interfaces
         /// </summary>
         /// <param name="settings">Настройки коэффициентов</param>
         public void SaveRegionCoefficientSettings(RegionCoefficientSettingsEntity settings);
+        public void SaveRegionForecastionFormSettings(RegionForecastionFormSettingsEntity settings);
 
         /// <summary>
         /// Получает настройки главной формы для указанного региона

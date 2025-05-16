@@ -19,14 +19,15 @@ namespace ForecastingWorkingPopulation
         private readonly IExcelParser _excelParser;
         private readonly LinearGraphPainter _painter;
         private Dictionary<int, List<RegionStatisticsDto>> forecastDictionary;
+        private bool _isSetting = false;
 
         public ForecastionForm()
         {
-            InitializeComponent();
-            Init();
             _populationRepository = new PopulationRepository();
             _painter = new LinearGraphPainter();
             _excelParser = new ExcelParser();
+            InitializeComponent();
+            Init();
             forecastDictionary = new Dictionary<int, List<RegionStatisticsDto>>();
             // Получаем номер текущего региона из хранилища
             int regionId = CalculationStorage.Instance.CurrentRegion;
@@ -38,6 +39,9 @@ namespace ForecastingWorkingPopulation
             // Обновляем заголовок формы, чтобы показать текущий регион
             this.Text = $"Прогноз занятого в экономике населения региона (ID: {regionId})";
 
+            // Загружаем настройки формы
+            LoadSettings();
+
             // Создаем прогноз численности занятого в экономике населения по годам
             CreateEmployedInEconomyForecast(regionId);
         }
@@ -47,6 +51,61 @@ namespace ForecastingWorkingPopulation
             comboBox1.Items.Add("Все");
             comboBox1.Items.Add("Мужчины");
             comboBox1.Items.Add("Женщины");
+            comboBox1.SelectedIndex = 0;
+            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            numericUpDown1.ValueChanged += numericUpDown1_ValueChanged;
+            numericUpDown2.ValueChanged += numericUpDown2_ValueChanged;
+        }
+
+        private void LoadSettings()
+        {
+            _isSetting = true;
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = _populationRepository.GetRegionForecastionFormSettings(regionId);
+            if (settings != null)
+            {
+                // Загружаем настройки
+                comboBox1.SelectedIndex = settings.SelectedGender;
+                numericUpDown1.Value = settings.ForecastStep;
+                numericUpDown2.Value = settings.ForecastEndYear;
+
+                // Устанавливаем максимальное значение для оси Y графика, если оно было сохранено
+                if (settings.ForecastMaxY > 0 && forecast.ChartAreas.Count > 0)
+                    forecast.ChartAreas[0].AxisY.Maximum = settings.ForecastMaxY;
+            }
+            _isSetting = false;
+        }
+
+        private void SaveSettings()
+        {
+            // Получаем номер текущего региона из хранилища
+            int regionId = CalculationStorage.Instance.CurrentRegion;
+
+            // Если регион не выбран, используем регион по умолчанию (10)
+            if (regionId <= 0)
+                regionId = 10;
+
+            var settings = new ForecastingWorkingPopulation.Database.Models.RegionForecastionFormSettingsEntity
+            {
+                RegionNumber = regionId,
+                SelectedGender = comboBox1.SelectedIndex,
+                ForecastStep = (int)numericUpDown1.Value,
+                ForecastEndYear = (int)numericUpDown2.Value
+            };
+
+            // Сохраняем текущее максимальное значение оси Y, если оно установлено
+            if (forecast.ChartAreas.Count > 0 && forecast.ChartAreas[0].AxisY.Maximum != double.NaN)
+            {
+                settings.ForecastMaxY = forecast.ChartAreas[0].AxisY.Maximum;
+            }
+
+            _populationRepository.SaveRegionForecastionFormSettings(settings);
         }
 
         /// <summary>
@@ -187,22 +246,25 @@ namespace ForecastingWorkingPopulation
 
         private void btnPrev_Click(object sender, EventArgs e)
         {
-
+            SaveSettings();
             FormRouting.PreviousForm(3, this);
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
+            if (_isSetting) return;
             CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
         }
 
         private void numericUpDown2_ValueChanged(object sender, EventArgs e)
         {
+            if (_isSetting) return;
             CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
         }
 
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (_isSetting) return;
             CreateEmployedInEconomyForecast(CalculationStorage.Instance.CurrentRegion);
         }
 
@@ -219,7 +281,8 @@ namespace ForecastingWorkingPopulation
 
         private void exitButton_Click(object sender, EventArgs e)
         {
-
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
 
             FormRouting.NextForm(3, this);
         }

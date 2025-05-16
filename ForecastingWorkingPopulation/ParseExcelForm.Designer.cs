@@ -33,6 +33,7 @@
             button1 = new Button();
             progressBar1 = new ProgressBar();
             button2 = new Button();
+            massImportFiles = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
             // 
@@ -76,11 +77,22 @@
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
+            // massImportFiles
+            // 
+            massImportFiles.Location = new Point(694, 12);
+            massImportFiles.Name = "massImportFiles";
+            massImportFiles.Size = new Size(94, 76);
+            massImportFiles.TabIndex = 5;
+            massImportFiles.Text = "Массово загрузить результаты опросов";
+            massImportFiles.UseVisualStyleBackColor = true;
+            massImportFiles.Click += massImportFiles_Click;
+            // 
             // ParseExcelForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(massImportFiles);
             Controls.Add(button2);
             Controls.Add(progressBar1);
             Controls.Add(button1);
@@ -98,5 +110,6 @@
         private Button button1;
         private ProgressBar progressBar1;
         private Button button2;
+        private Button massImportFiles;
     }
 }

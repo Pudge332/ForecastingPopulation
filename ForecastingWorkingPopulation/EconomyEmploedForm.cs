@@ -81,7 +81,6 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             UpdateSmoothChart();
-            SaveSettings();
             UpdateInEconomyLevelChart();
         }
 
@@ -89,7 +88,6 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             UpdateSmoothChart();
-            SaveSettings();
             UpdateInEconomyLevelChart();
         }
 
@@ -99,7 +97,6 @@ namespace ForecastingWorkingPopulation
             _windowSize = (int)windowSizeNumericUpDown.Value;
             UpdateSmoothChart();
             UpdateInEconomyLevelChart();
-            SaveSettings();
         }
 
         private void NumericUpDownAge_ValueChanged(object sender, EventArgs e)
@@ -131,7 +128,6 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             UpdateInEconomyLevelSmoothChart();
-            SaveSettings();
         }
 
         private void InEconomyWindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -139,7 +135,6 @@ namespace ForecastingWorkingPopulation
             if (_isSetting) return;
             _inEconomyWindowSize = (int)((NumericUpDown)sender).Value;
             UpdateInEconomyLevelChart();
-            SaveSettings();
         }
 
         private void LoadSettings()
@@ -177,6 +172,11 @@ namespace ForecastingWorkingPopulation
 
                 if (settings.InEconomyLevelSmoothMaxY > 0)
                     inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum = settings.InEconomyLevelSmoothMaxY;
+
+                if(settings.InEconomyLevelMinAge > 12)
+                    numericUpDownMinAge.Value = settings.InEconomyLevelMinAge;
+                if (settings.InEconomyLevelMaxAge > 13)
+                    numericUpDownMaxAge.Value = settings.InEconomyLevelMaxAge;
             }
             _isSetting = false;
         }
@@ -202,7 +202,9 @@ namespace ForecastingWorkingPopulation
                 EconomyEmploedMaxY = economyEmploed.ChartAreas[0].AxisY.Maximum,
                 EconomyEmploedSmoothMaxY = economyEmploedSmooth.ChartAreas[0].AxisY.Maximum,
                 InEconomyLevelMaxY = inEconomyLevel.ChartAreas[0].AxisY.Maximum,
-                InEconomyLevelSmoothMaxY = inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum
+                InEconomyLevelSmoothMaxY = inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum,
+                InEconomyLevelMinAge = (int)numericUpDownMinAge.Value,
+                InEconomyLevelMaxAge = (int)numericUpDownMaxAge.Value
             };
 
             _repository.SaveRegionEconomyEmploedFormSettings(settings);

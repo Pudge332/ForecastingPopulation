@@ -7,6 +7,7 @@ using ForecastingWorkingPopulation.Infrastructure;
 using ForecastingWorkingPopulation.Models.Enums;
 using System.Windows.Forms.DataVisualization.Charting;
 using ForecastingWorkingPopulation.Infrastructure.Excel;
+using System.Drawing;
 
 namespace ForecastingWorkingPopulation
 {
@@ -22,6 +23,7 @@ namespace ForecastingWorkingPopulation
         private decimal _maxCoefficentValue = 1;
         private int _minAge = 0;
         private int _maxAge = 80;
+        private int _radioButtonIndex = 0;
 
         private Dictionary<int, YearControl> _yearControls = new Dictionary<int, YearControl>();
 
@@ -100,6 +102,9 @@ namespace ForecastingWorkingPopulation
                 smoothingComboBox.SelectedIndex = settings.SelectedSmoothing;
                 windowSizeNumericUpDown.Value = settings.WindowSize;
                 _windowSize = settings.WindowSize;
+                numericUpDown1.Value = settings.DeltaValue;
+                _radioButtonIndex = settings.SelectedCoefficientProcessing;
+                SetActiveRadioButton(_radioButtonIndex);
             }
             _isSetting = false;
         }
@@ -118,7 +123,9 @@ namespace ForecastingWorkingPopulation
                 RegionNumber = regionId,
                 SelectedGender = genderComboBox.SelectedIndex,
                 SelectedSmoothing = smoothingComboBox.SelectedIndex,
-                WindowSize = (int)windowSizeNumericUpDown.Value
+                WindowSize = (int)windowSizeNumericUpDown.Value,
+                DeltaValue = (int)numericUpDown1.Value,
+                SelectedCoefficientProcessing = _radioButtonIndex
             };
 
             // Сохраняем текущее максимальное значение оси Y, если оно установлено
@@ -127,11 +134,27 @@ namespace ForecastingWorkingPopulation
                 var existingSettings = _populationRepository.GetRegionMainFormSettings(regionId);
                 if (existingSettings != null && existingSettings.PermanentPopulationMaxY > 0)
                 {
-                    settings.PermanentPopulationMaxY = existingSettings.PermanentPopulationMaxY;
+                    settings.PermanentPopulationMaxY = existingSettings.PermanentPopulationMaxY; 
                 }
             }
 
             _populationRepository.SaveRegionMainFormSettings(settings);
+        }
+
+        private void SetActiveRadioButton(int indexButton)
+        {
+            switch (indexButton)
+            {
+                case 0:
+                    NoTrim.Checked = true;
+                    break;
+                case 1:
+                    TrimToOne.Checked = true;
+                    break;
+                case 2:
+                    TrimToDelta.Checked = true;
+                    break;
+            }
         }
 
         private void SmoothingComboBoxChanged(object sender, EventArgs e)
@@ -140,7 +163,6 @@ namespace ForecastingWorkingPopulation
                 return;
 
             PaintByGender((GenderComboBox)genderComboBox.SelectedIndex, (SmoothComboBox)smoothingComboBox.SelectedIndex);
-            SaveSettings();
         }
 
         private void GenderComboBoxChanged(object sender, EventArgs e)
@@ -149,7 +171,6 @@ namespace ForecastingWorkingPopulation
                 return;
 
             PaintByGender((GenderComboBox)genderComboBox.SelectedIndex, (SmoothComboBox)smoothingComboBox.SelectedIndex);
-            SaveSettings();
         }
 
         private void WindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -159,7 +180,6 @@ namespace ForecastingWorkingPopulation
 
             _windowSize = (int)windowSizeNumericUpDown.Value;
             PaintByGender((GenderComboBox)genderComboBox.SelectedIndex, (SmoothComboBox)smoothingComboBox.SelectedIndex);
-            SaveSettings();
         }
 
         private void PaintByGender(GenderComboBox genderComboValue, SmoothComboBox smoothComboValue)
@@ -600,9 +620,6 @@ namespace ForecastingWorkingPopulation
             if (regionId <= 0)
                 regionId = 10;
 
-            // Сохраняем настройки коэффициентов
-            SaveRegionCoefficientSettings(regionId);
-
             CalculateAndPaintCoefficent(regionId);
 
             // Создаем прогноз численности постоянного населения по годам
@@ -818,7 +835,7 @@ namespace ForecastingWorkingPopulation
         {
             // Сохраняем настройки перед переходом на следующую форму
             SaveSettings();
-
+            SaveRegionCoefficientSettings(CalculationStorage.Instance.CurrentRegion);
             FormRouting.NextForm(1, this);
         }
 
@@ -832,14 +849,17 @@ namespace ForecastingWorkingPopulation
                 {
                     case "NoTrim":
                         _maxCoefficentValue = decimal.MaxValue;
+                        _radioButtonIndex = 0;
                         SetActiveToLamdaNumericUpDown(false);
                         break;
                     case "TrimToOne":
                         _maxCoefficentValue = 1;
+                        _radioButtonIndex = 1;
                         SetActiveToLamdaNumericUpDown(false);
                         break;
                     default:
-                        _maxCoefficentValue = 1 + numericUpDown1.Value / (decimal)100; 
+                        _maxCoefficentValue = 1 + numericUpDown1.Value / (decimal)100;
+                        _radioButtonIndex = 2;
                         SetActiveToLamdaNumericUpDown(true);
                         break;
                 }
@@ -895,7 +915,7 @@ namespace ForecastingWorkingPopulation
         {
             // Сохраняем настройки перед переходом на следующую форму
             SaveSettings();
-
+            SaveRegionCoefficientSettings(CalculationStorage.Instance.CurrentRegion);
             FormRouting.PreviousForm(1, this);
         }
     }

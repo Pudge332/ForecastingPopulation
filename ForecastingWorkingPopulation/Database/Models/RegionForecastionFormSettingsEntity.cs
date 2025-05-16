@@ -4,9 +4,9 @@ using ForecastingWorkingPopulation.Models.Enums;
 namespace ForecastingWorkingPopulation.Database.Models
 {
     /// <summary>
-    /// Настройки главной формы для региона
+    /// Настройки формы прогнозирования для региона
     /// </summary>
-    public class RegionMainFormSettingsEntity
+    public class RegionForecastionFormSettingsEntity
     {
         /// <summary>
         /// Номер региона (первичный ключ)
@@ -20,21 +20,18 @@ namespace ForecastingWorkingPopulation.Database.Models
         public int SelectedGender { get; set; }
 
         /// <summary>
-        /// Выбранный тип сглаживания в комбобоксе
+        /// Шаг прогнозирования (значение numericUpDown1)
         /// </summary>
-        public int SelectedSmoothing { get; set; }
+        public int ForecastStep { get; set; }
 
         /// <summary>
-        /// Размер окна сглаживания
+        /// Конечный год прогнозирования (значение numericUpDown2)
         /// </summary>
-        public int WindowSize { get; set; }
-
-        public int SelectedCoefficientProcessing { get; set; }
-        public int DeltaValue { get; set; }
+        public int ForecastEndYear { get; set; }
 
         /// <summary>
-        /// Максимальное значение по оси Y для графика постоянного населения
+        /// Максимальное значение по оси Y для графика прогноза
         /// </summary>
-        public double PermanentPopulationMaxY { get; set; }
+        public double ForecastMaxY { get; set; }
     }
 }
