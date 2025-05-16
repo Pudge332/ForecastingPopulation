@@ -12,7 +12,7 @@ namespace ForecastingWorkingPopulation
         private System.Windows.Forms.Timer _closeTimer;
 
         // Время отображения уведомления в миллисекундах
-        private const int DefaultDisplayTime = 3000;
+        private const int DefaultDisplayTime = 10000;
 
         // Конструктор формы
         public NotificationForm()

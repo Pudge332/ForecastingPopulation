@@ -60,8 +60,8 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
 
         public List<RegionStatisticsDto> ParseBiluten(string path, string workSheetName, int columnOffset)
         {
-            var defaultColumnNumber = 2;
-            var defaultStartRow = 10;
+            var defaultColumnNumber = 1;
+            var defaultStartRow = 7;
 
             var preResult = new List<BilutenExcelItem>();
             var result = new List<RegionStatisticsDto>();
@@ -76,7 +76,16 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             using (var package = new ExcelPackage(path))
             {
                 var worksheet = package.Workbook.Worksheets[workSheetName];
-
+                if (worksheet.Cells[defaultStartRow, defaultColumnNumber]?.Value == null)
+                {
+                    defaultColumnNumber = 2;
+                    defaultStartRow = 10;
+                }
+                else
+                {
+                    defaultStartRow = 7;
+                    defaultColumnNumber = 1;
+                }
                 for (int rowNumber = defaultStartRow; !string.IsNullOrWhiteSpace(worksheet.Cells[rowNumber, defaultColumnNumber].Text); rowNumber++)
                 {
                     if (worksheet.Cells[rowNumber, defaultColumnNumber]?.Text?.Contains('-') == true || !int.TryParse(worksheet.Cells[rowNumber, defaultColumnNumber]?.Text, out parseValue))
