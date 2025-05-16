@@ -60,9 +60,7 @@ namespace ForecastingWorkingPopulation
             forecast.ChartAreas[0].AxisY.Title = "Численность занятого населения в тысячах";
 
             var permanentPopulation = CalculationStorage.Instance.PermanentPopulationForecast;
-            var inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevelSmoothed();
-            if (!inEconomyLevelDtos.Any())
-                inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevel();
+            var inEconomyLevelDtos = CalculationStorage.Instance.GetInEconomyLevelForecastData();
 
             CalculateForecast(permanentPopulation, inEconomyLevelDtos);
         }
@@ -70,11 +68,12 @@ namespace ForecastingWorkingPopulation
         private void CalculateForecast(Dictionary<int, List<RegionStatisticsDto>> permanentPopulation, List<RegionInEconomyLevelDto> inEconomyLevelDtos)
         {
             forecastDictionary = new Dictionary<int, List<RegionStatisticsDto>>();
+            var firstYear = permanentPopulation.First().Key;
             var xValues = new List<double>();
             var yValues = new List<double>();
             var step = (int)numericUpDown1.Value;
             maxY = 0.0;
-            for (int year = 2024; year < (int)numericUpDown2.Value; year += step)
+            for (int year = firstYear; year < (int)numericUpDown2.Value; year += step)
                 PaintForecast(permanentPopulation, inEconomyLevelDtos, year);
 
             PaintForecast(permanentPopulation, inEconomyLevelDtos, (int)numericUpDown2.Value);
@@ -107,7 +106,7 @@ namespace ForecastingWorkingPopulation
             forecast.ChartAreas[0].AxisY.Maximum = maxY * 1.3;
             forecast.ChartAreas[0].AxisX.Maximum = 70;
             forecast.ChartAreas[0].AxisX.Minimum = 12;
-            forecast.Series.Add(_painter.PainLinearGraph($"Прогноз на {year}", xValues, yValues));
+            forecast.Series.Add(_painter.PaintLinearGraph($"Прогноз на {year}", xValues, yValues));
             forecastDictionary.Add(year, forecastValues);
             FillForecastInOneAgeChart();
         }
@@ -142,7 +141,7 @@ namespace ForecastingWorkingPopulation
             var seriesDataList = new List<ChartDataService.SeriesData>();
             foreach (var values in ageGroupps)
             {
-                var series = _painter.PainLinearGraph($"Возраст: {values.Key}", years, values.Value);
+                var series = _painter.PaintLinearGraph($"Возраст: {values.Key}", years, values.Value);
                 forecastInOneAge.Series.Add(series);
                 seriesDataList.Add(new ChartDataService.SeriesData
                 {

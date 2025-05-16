@@ -29,6 +29,18 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return result;
         }
 
+        public List<RegionInEconomyLevelDto> SmoothingValuesDto(IEnumerable<RegionInEconomyLevelDto> data, int windowSize, SmoothingType smoothingType, int smoothingCount = 1)
+        {
+            var result = new List<RegionInEconomyLevelDto>(data);
+            foreach (var item in data)
+                item.Level = item.Level;
+
+            for (int i = 0; i < smoothingCount; i++)
+                result = SetSmoothingType(result, windowSize, smoothingType);
+
+            return result;
+        }
+
         private List<RegionStatisticsDto> SetSmoothingType(IEnumerable<RegionStatisticsDto> dtos, int windowSize, SmoothingType smoothingType)
         {
             switch (smoothingType)
@@ -46,6 +58,17 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return null;
         }
 
+        private List<RegionInEconomyLevelDto> SetSmoothingType(IEnumerable<RegionInEconomyLevelDto> dtos, int windowSize, SmoothingType smoothingType)
+        {
+            switch (smoothingType)
+            {
+                case SmoothingType.MovingAverageWindow:
+                    return MovingAverageSmoothing(dtos.ToList(), windowSize);
+            }
+
+            return null;
+        }
+
         public List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
         {
             for (int i = 0; i < data.Count - windowSize; i++)
@@ -57,11 +80,31 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return data;
         }
 
+        public List<RegionInEconomyLevelDto> MovingAverageSmoothing(List<RegionInEconomyLevelDto> data, int windowSize)
+        {
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                var smoothingValue = GetSumInRange(data, i, i + windowSize) / windowSize;
+                data[i].Level = smoothingValue;
+            }
+
+            return data;
+        }
+
         public double GetSumInRange(List<RegionStatisticsDto> data, int startIndex, int endIndex)
         {
             var result = 0.0;
             for (int i = startIndex; i < endIndex; i++)
                 result += data[i].SummaryByYearSmoothed;
+
+            return result;
+        }
+
+        public double GetSumInRange(List<RegionInEconomyLevelDto> data, int startIndex, int endIndex)
+        {
+            var result = 0.0;
+            for (int i = startIndex; i < endIndex; i++)
+                result += data[i].Level;
 
             return result;
         }

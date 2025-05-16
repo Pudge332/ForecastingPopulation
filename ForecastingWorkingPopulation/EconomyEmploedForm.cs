@@ -16,6 +16,8 @@ namespace ForecastingWorkingPopulation
         private bool _isSetting = false;
         private int _windowSize = 5; // Значение по умолчанию для размера окна сглаживания
         private int _inEconomyWindowSize = 5; // Значение по умолчанию для размера окна сглаживания графика уровня занятости
+        private int _minAge = 12;
+        private int _maxAge = 100;
 
         public EconomyEmploedForm()
         {
@@ -33,7 +35,7 @@ namespace ForecastingWorkingPopulation
 
             // Данные без сглаживания
             var economyEmploedData = _chartService.PrepareChartData(data, GenderComboBox.All, 5, 0, useSmoothing: false);
-            PaintCharts(economyEmploedData);
+            PaintChart(economyEmploedData);
 
             // Данные со сглаживанием
             UpdateSmoothChart();
@@ -88,6 +90,7 @@ namespace ForecastingWorkingPopulation
             if (_isSetting) return;
             UpdateSmoothChart();
             SaveSettings();
+            UpdateInEconomyLevelChart();
         }
 
         private void WindowSizeNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -95,7 +98,15 @@ namespace ForecastingWorkingPopulation
             if (_isSetting) return;
             _windowSize = (int)windowSizeNumericUpDown.Value;
             UpdateSmoothChart();
+            UpdateInEconomyLevelChart();
             SaveSettings();
+        }
+
+        private void NumericUpDownAge_ValueChanged(object sender, EventArgs e)
+        {
+            _minAge = (int)numericUpDownMinAge.Value;
+            _maxAge = (int)numericUpDownMaxAge.Value;
+            UpdateInEconomyLevelChart();
         }
 
         private void UpdateSmoothChart()
@@ -127,7 +138,7 @@ namespace ForecastingWorkingPopulation
         {
             if (_isSetting) return;
             _inEconomyWindowSize = (int)((NumericUpDown)sender).Value;
-            UpdateInEconomyLevelSmoothChart();
+            UpdateInEconomyLevelChart();
             SaveSettings();
         }
 
@@ -199,151 +210,55 @@ namespace ForecastingWorkingPopulation
 
         private void UpdateInEconomyLevelSmoothChart()
         {
-            var regionId = CalculationStorage.Instance.CurrentRegion;
-            var economyData = new List<RegionStatisticsDto>();
-            economyData = CalculationStorage.Instance.GetEconomyEmploedForecastDataValues();
-            if (!economyData.Any())
-                economyData = _repository.GetEconomyEmployedInRegion(regionId);
-
-            var populationData = new List<RegionStatisticsDto>();
-            populationData = CalculationStorage.Instance.GetPermanentPopulationForecastDataValues();
-            if (!populationData.Any())
-                populationData = _repository.GetPopulationInRegion(regionId);
-
-            // Получаем значение сглаживания из комбобокса
-            var smoothingValue = (SmoothComboBox)inEconomySmoothingComboBox.SelectedIndex;
-            bool useSmoothing = (int)smoothingValue > 0;
-
-            if (useSmoothing)
-                for (int i = 0; i < (int)smoothingValue; i++)
-                {
-                    economyData = _smoothingCalculator.SmoothingValuesDto(economyData, _inEconomyWindowSize, SmoothingType.MovingAverageWindow);
-                    populationData = _smoothingCalculator.SmoothingValuesDto(populationData, _inEconomyWindowSize, SmoothingType.MovingAverageWindow);
-                }
-
-            // Очищаем график
-            inEconomyLevelSmooth.Series.Clear();
-            // Создаем серии для мужчин и женщин
-            var malesSeries = new Series("Мужчины" + (useSmoothing ? " (сглаж.)" : "")) { ChartType = SeriesChartType.Line };
-            var femalesSeries = new Series("Женщины" + (useSmoothing ? " (сглаж.)" : "")) { ChartType = SeriesChartType.Line };
-
-            // Группируем данные по возрасту и полу для расчета средних значений
-            var economyByAgeAndGender = economyData
-                .GroupBy(d => new { d.Age, d.Gender })
-                .Select(g => new RegionStatisticsDto
-                {
-                    Age = g.Key.Age,
-                    Gender = g.Key.Gender,
-                    SummaryByYear = (int)g.Average(d => d.SummaryByYear),
-                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYearSmoothed)
-                });
-
-            var populationByAgeAndGender = populationData
-                .GroupBy(d => new { d.Age, d.Gender })
-                .Select(g => new RegionStatisticsDto
-                {
-                    Age = g.Key.Age,
-                    Gender = g.Key.Gender,
-                    SummaryByYear = (int)g.Average(d => d.SummaryByYear),
-                    SummaryByYearSmoothed = g.Average(d => d.SummaryByYearSmoothed)
-                });
-
-            // Создаем списки коэффициентов для мужчин и женщин
-            var maleCoefficients = new List<RegionStatisticsDto>();
-            var femaleCoefficients = new List<RegionStatisticsDto>();
-
-            // Объединяем данные и вычисляем коэффициенты
-            foreach (var economy in economyByAgeAndGender)
-            {
-                var population = populationByAgeAndGender.FirstOrDefault(p =>
-                    p.Age == economy.Age && p.Gender == economy.Gender);
-
-                if (population != null && population.SummaryByYearSmoothed > 0)
-                {
-                    var coefficient = new RegionStatisticsDto
-                    {
-                        Age = economy.Age,
-                        Gender = economy.Gender,
-                        SummaryByYear = 0, // Не используем для коэффициентов
-                        SummaryByYearSmoothed = economy.SummaryByYearSmoothed / population.SummaryByYearSmoothed
-                    };
-
-                    if (economy.Gender == Gender.Male)
-                        maleCoefficients.Add(coefficient);
-                    else
-                        femaleCoefficients.Add(coefficient);
-                }
-            }
-
-            // Сортируем по возрасту
-            maleCoefficients = maleCoefficients.OrderBy(c => c.Age).ToList();
-            femaleCoefficients = femaleCoefficients.OrderBy(c => c.Age).ToList();
-
-            // Заполняем серии данными
-            foreach (var coefficient in maleCoefficients)
-            {
-                malesSeries.Points.AddXY(coefficient.Age, coefficient.SummaryByYearSmoothed);
-            }
-
-            foreach (var coefficient in femaleCoefficients)
-            {
-                femalesSeries.Points.AddXY(coefficient.Age, coefficient.SummaryByYearSmoothed);
-            }
-
-            // Добавляем серии на график
-            inEconomyLevelSmooth.Series.Add(malesSeries);
-            inEconomyLevelSmooth.Series.Add(femalesSeries);
-
-
             // Настраиваем оси
+            inEconomyLevelSmooth.Series.Clear();
             inEconomyLevelSmooth.ChartAreas[0].AxisX.Title = "Возраст";
             inEconomyLevelSmooth.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике (сглаживание)";
-            inEconomyLevelSmooth.ChartAreas[0].AxisX.Minimum = 0;
+            inEconomyLevelSmooth.ChartAreas[0].AxisX.Minimum = _minAge - 2;
+            inEconomyLevelSmooth.ChartAreas[0].AxisY.Maximum = 1.6;
 
-            // Устанавливаем максимальное значение по оси Y
-            double maxY = Math.Max(
-                maleCoefficients.Count > 0 ? maleCoefficients.Max(c => c.SummaryByYearSmoothed) : 0,
-                femaleCoefficients.Count > 0 ? femaleCoefficients.Max(c => c.SummaryByYearSmoothed) : 0
-            );
-            SetYAxisMaximum(inEconomyLevelSmooth, maxY, "InEconomyLevelSmoothMaxY");
+            var coefficentValues = CalculationStorage.Instance.GetInEconomyLevel();
+            var visualizationValues = new List<RegionInEconomyLevelDto>();
+            foreach (var value in coefficentValues)
+                visualizationValues.Add(new RegionInEconomyLevelDto
+                {
+                    Age = value.Age,
+                    Gender = value.Gender,
+                    Level = value.Level,
+                    Year = value.Year
+                });
+            
+            var smoothingCount = inEconomySmoothingComboBox.SelectedIndex;
+            if(smoothingCount > 0)
+                visualizationValues = _smoothingCalculator.SmoothingValuesDto(visualizationValues, _inEconomyWindowSize, SmoothingType.MovingAverageWindow, smoothingCount);
 
-            // Сохраняем данные в CalculationStorage
-            var maleCoefficientsData = maleCoefficients.Select(c => new RegionInEconomyLevelDto
-            {
-                Age = c.Age,
-                Gender = c.Gender,
-                Level = c.SummaryByYearSmoothed
-            }).ToList();
+            visualizationValues = visualizationValues.Where(x => x.Age <= _maxAge && x.Age >= _minAge).ToList();
+            var maleValues = visualizationValues.Where(x => x.Gender == Gender.Male).OrderBy(x => x.Age);
+            if (maleValues?.Any() == true)
+                inEconomyLevelSmooth.Series.Add(_linearGraphPainter.PaintLinearGraph(
+                    "Мужчины",
+                    maleValues.Select(x => Convert.ToDouble(x.Age)).ToList(),
+                    maleValues.Select(x => x.Level).ToList()));
 
-            var femaleCoefficientsData = femaleCoefficients.Select(c => new RegionInEconomyLevelDto
-            {
-                Age = c.Age,
-                Gender = c.Gender,
-                Level = c.SummaryByYearSmoothed
-            }).ToList();
+            var femaleValues = visualizationValues.Where(x => x.Gender == Gender.Female).OrderBy(x => x.Age);
+            if (femaleValues?.Any() == true)
+                inEconomyLevelSmooth.Series.Add(_linearGraphPainter.PaintLinearGraph(
+                    "Женщины",
+                    femaleValues.Select(x => Convert.ToDouble(x.Age)).ToList(),
+                    femaleValues.Select(x => x.Level).ToList()));
 
-            //Объединяем все данные 
-            maleCoefficientsData.AddRange(femaleCoefficientsData);
 
-            // Сохраняем данные в хранилище
-            CalculationStorage.Instance.StoreInEconomyLevel(maleCoefficientsData);
+            CalculationStorage.Instance.StoreInEconomyForecastDataLevel(visualizationValues);
         }
 
         /// <summary>
         /// Устанавливает максимальное значение по оси Y для графика на основе данных серий
         /// </summary>
-        private void SetChartYAxisMaximum(Chart chart, List<ChartDataService.SeriesData> data, string settingPropertyName)
+        private void SetChartYAxisMaximum(Chart chart, List<RegionStatisticsDto> data, string settingPropertyName)
         {
             // Находим максимальное значение Y среди всех серий
             double maxY = 0;
-            foreach (var seriesData in data)
-            {
-                if (seriesData.YValues.Count > 0)
-                {
-                    double seriesMaxY = seriesData.YValues.Max();
-                    maxY = Math.Max(maxY, seriesMaxY);
-                }
-            }
+            maxY = data.Max(x => x.SummaryByYearSmoothed);
 
             // Устанавливаем максимальное значение оси Y с запасом 35%
             SetYAxisMaximum(chart, maxY, settingPropertyName);
@@ -395,78 +310,47 @@ namespace ForecastingWorkingPopulation
             }
         }
 
-        private void PaintCharts(List<ChartDataService.SeriesData> data)
+        private void PaintChart(List<RegionStatisticsDto> data)
         {
             #region Занятые в экономике без сглаживания
             economyEmploed.Series.Clear();
-            foreach (var byYear in data.GroupBy(x => x.SeriesName))
-                economyEmploed.Series.Add(_linearGraphPainter.PainLinearGraph(
-                    name: byYear.Key,
-                    xValues: byYear.SelectMany(x => x.XValues).ToList(),
-                    yValues: byYear.SelectMany(x => x.YValues).ToList()));
-
             economyEmploed.ChartAreas[0].AxisX.Title = "Возраст";
             economyEmploed.ChartAreas[0].AxisY.Title = "Занятые в экономике";
             economyEmploed.ChartAreas[0].AxisX.Minimum = 0;
-
-            // Устанавливаем максимальное значение по оси Y
-            SetChartYAxisMaximum(economyEmploed, data, "EconomyEmploedMaxY");
             #endregion
-
-            // Сохраняем данные в CalculationStorage
-            foreach (var seriesData in data)
+            var chartValues = data;
+            chartValues = JoinGenderValueInOneAge(data);
+            SetChartYAxisMaximum(economyEmploedSmooth, chartValues, "EconomyEmploedMaxY");
+            var byYearGrouppedDto = chartValues.GroupBy(x => x.Year);
+            foreach (var groupp in byYearGrouppedDto)
             {
-                var statisticsData = new List<RegionStatisticsDto>();
-                var year = int.Parse(seriesData.SeriesName);
-                for (int i = 0; i < seriesData.XValues.Count; i++)
-                {
-                    statisticsData.Add(new RegionStatisticsDto
-                    {
-                        Age = (int)seriesData.XValues[i],
-                        SummaryByYear = (int)seriesData.YValues[i],
-                        Year = year,
-                        Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
-                    });
-                }
-                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(year, statisticsData);
+                var values = groupp.OrderBy(x => x.Age).ToList();
+                economyEmploed.Series.Add(_linearGraphPainter.PaintLinearGraph(groupp.Key.ToString(), 
+                    values.Select(x => Convert.ToDouble(x.Age)).ToList(), 
+                    values.Select(x => Convert.ToDouble(x.SummaryByYearSmoothed)).ToList()));
             }
         }
 
-        private void PaintSmoothChart(List<ChartDataService.SeriesData> data)
+        private void PaintSmoothChart(List<RegionStatisticsDto> data)
         {
             #region Занятые в экономике со сглаживанием
             economyEmploedSmooth.Series.Clear();
-            foreach (var byYear in data.GroupBy(x => x.SeriesName))
-                economyEmploedSmooth.Series.Add(_linearGraphPainter.PainLinearGraph(
-                    name: byYear.Key,
-                    xValues: byYear.SelectMany(x => x.XValues).ToList(),
-                    yValues: byYear.SelectMany(x => x.YValues).ToList()));
-
             economyEmploedSmooth.ChartAreas[0].AxisX.Title = "Возраст";
             economyEmploedSmooth.ChartAreas[0].AxisY.Title = "Занятые в экономике (сглаживание)";
             economyEmploedSmooth.ChartAreas[0].AxisX.Minimum = 0;
-
-            // Устанавливаем максимальное значение по оси Y
-            SetChartYAxisMaximum(economyEmploedSmooth, data, "EconomyEmploedSmoothMaxY");
             #endregion
-
-            // Сохраняем данные в CalculationStorage
-            foreach (var seriesData in data)
+            var chartValues = data;
+            if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All)
+                chartValues = JoinGenderValueInOneAge(data);
+            SetChartYAxisMaximum(economyEmploedSmooth, chartValues, "EconomyEmploedMaxY");
+            var byYearGrouppedDto = chartValues.GroupBy(x => x.Year);
+            foreach (var groupp in byYearGrouppedDto)
             {
-                var statisticsData = new List<RegionStatisticsDto>();
-                var year = int.Parse(seriesData.SeriesName);
-                for (int i = 0; i < seriesData.XValues.Count; i++)
-                {
-                    statisticsData.Add(new RegionStatisticsDto
-                    {
-                        Age = (int)seriesData.XValues[i],
-                        SummaryByYear = (int)seriesData.YValues[i],
-                        SummaryByYearSmoothed = seriesData.YValues[i],
-                        Year = year,
-                        Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
-                    });
-                }
-                CalculationStorage.Instance.StoreEconomyEmploedForecastData(year, statisticsData);
+                var values = groupp.OrderBy(x => x.Age).ToList();
+                economyEmploedSmooth.Series.Add(_linearGraphPainter.PaintLinearGraph(groupp.Key.ToString(),
+                    values.Select(x => Convert.ToDouble(x.Age)).ToList(),
+                    values.Select(x => Convert.ToDouble(x.SummaryByYearSmoothed)).ToList()));
+                CalculationStorage.Instance.StoreEconomyEmploedForecastData(groupp.Key, data.Where(x => x.Year == groupp.Key).ToList());
             }
         }
 
@@ -487,7 +371,8 @@ namespace ForecastingWorkingPopulation
             inEconomyLevel.Series.Clear();
             inEconomyLevel.ChartAreas[0].AxisX.Title = "Возраст";
             inEconomyLevel.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике";
-            inEconomyLevel.ChartAreas[0].AxisX.Minimum = 0;
+            inEconomyLevel.ChartAreas[0].AxisX.Minimum = _minAge - 2;
+            inEconomyLevel.ChartAreas[0].AxisY.Maximum = 1.6;
             var maleValues = new List<RegionInEconomyLevelDto>();
             var femaleValues = new List<RegionInEconomyLevelDto>();
             var maleAverageValues = new List<RegionInEconomyLevelDto>();
@@ -509,36 +394,40 @@ namespace ForecastingWorkingPopulation
                             .FirstOrDefault(dto => dto.Year == year && permanent.Age == dto.Age && permanent.Gender == dto.Gender);
                         if (inEconomyValue is null)
                             continue;
+                        var economyLevel = inEconomyValue.SummaryByYearSmoothed / permanent.SummaryByYearSmoothed;
+                        if (economyLevel > 1.5)
+                            continue;
 
                         if (permanent.Gender == Gender.Male)
                         {
-                            malesSeries.Points.AddXY(permanent.Age, inEconomyValue.SummaryByYear / (double)permanent.SummaryByYear);
+                            malesSeries.Points.AddXY(permanent.Age, economyLevel);
                             maleValues.Add(new RegionInEconomyLevelDto
                             {
                                 Age = permanent.Age,
                                 Year = year,
                                 Gender = Gender.Male,
-                                Level = inEconomyValue.SummaryByYear / (double)permanent.SummaryByYear
+                                Level = economyLevel
                             });
                         }
                         else
                         {
-                            femalesSeries.Points.AddXY(permanent.Age, inEconomyValue.SummaryByYear / (double)permanent.SummaryByYear);
+                            femalesSeries.Points.AddXY(permanent.Age, economyLevel);
                             femaleValues.Add(new RegionInEconomyLevelDto
                             {
                                 Age = permanent.Age,
                                 Year = year,
                                 Gender = Gender.Female,
-                                Level = inEconomyValue.SummaryByYear / (double)permanent.SummaryByYear
+                                Level = economyLevel
                             });
                         }
                     }
                 }
-                if (!malesSeries.Points.Any() || !femalesSeries.Points.Any())
+                if (!malesSeries.Points.Any() && !femalesSeries.Points.Any())
                     continue;
 
                 if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Males)
                     inEconomyLevel.Series.Add(malesSeries);
+                
                 if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Females)
                     inEconomyLevel.Series.Add(femalesSeries);
             }
@@ -552,25 +441,42 @@ namespace ForecastingWorkingPopulation
             {
                 var maleInEconomyByAge = maleValues.Where(value => value.Age == age);
                 var femaleInEconomyByAge = femaleValues.Where(value => value.Age == age);
-                if (!maleInEconomyByAge.Any() || !femaleInEconomyByAge.Any())
+                var hasMaleValues = maleInEconomyByAge.Any();
+                var hasFemaleValues = femaleInEconomyByAge.Any();
+                if (!hasMaleValues && !hasFemaleValues)
                     continue;
 
-                var maleAverageValue = maleInEconomyByAge.Average(x => x.Level);
-                var femaleAverageValue = femaleInEconomyByAge.Average(x => x.Level);
-                malesSeries.Points.AddXY(age, maleAverageValue);
-                femalesSeries.Points.AddXY(age, femaleAverageValue);
-                maleAverageValues.Add(new RegionInEconomyLevelDto
+                var maleAverageValue = 0.0;
+                var femaleAverageValue = 0.0;
+
+                if (hasMaleValues)
+                    maleAverageValue = maleInEconomyByAge.Average(x => x.Level);
+                if(hasFemaleValues)
+                    femaleAverageValue = femaleInEconomyByAge.Average(x => x.Level);
+
+                if (maleAverageValue > 1.5 || femaleAverageValue > 1.5)
+                    continue;
+
+                if (hasMaleValues)
                 {
-                    Age = age,
-                    Gender = Gender.Male,
-                    Level = maleAverageValue
-                });
-                femaleAverageValues.Add(new RegionInEconomyLevelDto
+                    malesSeries.Points.AddXY(age, maleAverageValue);
+                    maleAverageValues.Add(new RegionInEconomyLevelDto
+                    {
+                        Age = age,
+                        Gender = Gender.Male,
+                        Level = maleAverageValue
+                    });
+                }
+                if (hasFemaleValues)
                 {
-                    Age = age,
-                    Gender = Gender.Female,
-                    Level = femaleAverageValue
-                });
+                    femalesSeries.Points.AddXY(age, femaleAverageValue);
+                    femaleAverageValues.Add(new RegionInEconomyLevelDto
+                    {
+                        Age = age,
+                        Gender = Gender.Female,
+                        Level = femaleAverageValue
+                    });
+                }
             }
             if ((GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.All || (GenderComboBox)genderComboBox.SelectedIndex == GenderComboBox.Males)
                 inEconomyLevel.Series.Add(malesSeries);
@@ -583,6 +489,23 @@ namespace ForecastingWorkingPopulation
 
             // Обновляем график со сглаживанием, но только если это вызвано из конструктора или из обработчиков событий элементов управления графика уровня занятости
             UpdateInEconomyLevelSmoothChart();
+        }
+
+        private List<RegionStatisticsDto> JoinGenderValueInOneAge(List<RegionStatisticsDto> dtos)
+        {
+            var result = new List<RegionStatisticsDto>();
+            foreach(var dto in dtos.Where(x => x.Gender == Gender.Male))
+            {
+                var femaleValue = dtos.FirstOrDefault(x => x.Year == dto.Year && x.Age == dto.Age && x.Gender == Gender.Female);
+                result.Add(new RegionStatisticsDto
+                {
+                    Year = dto.Year,
+                    Age = dto.Age,
+                    SummaryByYearSmoothed = dto.SummaryByYearSmoothed + femaleValue?.SummaryByYearSmoothed ?? 0
+                });
+            }
+
+            return result;
         }
 
         private Color SetTransparency(Color color, int alphaValue)

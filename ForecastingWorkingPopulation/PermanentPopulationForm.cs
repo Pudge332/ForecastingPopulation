@@ -209,7 +209,7 @@ namespace ForecastingWorkingPopulation
                     yValues = resultY;
                 }
 
-                var series = _painter.PainLinearGraph($"Год {group.Key}", xValues, yValues);
+                var series = _painter.PaintLinearGraph($"Год {group.Key}", xValues, yValues);
                 currentChart.Series.Add(series);
 
                 // Добавляем данные серии в список для расчета максимального значения Y
@@ -365,7 +365,7 @@ namespace ForecastingWorkingPopulation
                 yValuesMale.Add(group.Coefficent);
             }
 
-            var seriesMale = _painter.PainLinearGraph("КПЖ (мужчины)", xValuesMale, yValuesMale);
+            var seriesMale = _painter.PaintLinearGraph("КПЖ (мужчины)", xValuesMale, yValuesMale);
             seriesMale.Color = System.Drawing.Color.Blue;
             lifeExpectancyCoefficient.Series.Add(seriesMale);
             lifeExpectancyCoefficient.ChartAreas[0].AxisX.Minimum = 0;
@@ -380,7 +380,7 @@ namespace ForecastingWorkingPopulation
                 yValuesFemale.Add(group.Coefficent);
             }
 
-            var seriesFemale = _painter.PainLinearGraph("КПЖ (женщины)", xValuesFemale, yValuesFemale);
+            var seriesFemale = _painter.PaintLinearGraph("КПЖ (женщины)", xValuesFemale, yValuesFemale);
             seriesFemale.Color = System.Drawing.Color.Red;
             lifeExpectancyCoefficient.Series.Add(seriesFemale);
 
@@ -659,7 +659,7 @@ namespace ForecastingWorkingPopulation
             var visualizationYears = new List<int> { 2025, 2030, 2035, 2040, 2045 };
             var lastYearData = populationData.Where(dto => dto.Year == 2024).ToList();
             (xValues, yValues) = GetValuesForChart(lastYearData);
-            var seriesLastYear = _painter.PainLinearGraph($"Факт {2024}", xValues, yValues);
+            var seriesLastYear = _painter.PaintLinearGraph($"Факт {2024}", xValues, yValues);
             forecastinForOneYear.Series.Add(seriesLastYear);
             var forecastByYears = new Dictionary<int, List<RegionStatisticsDto>>
             {
@@ -693,7 +693,7 @@ namespace ForecastingWorkingPopulation
                 var chartData = forecastByYears[chartYear];
                 (xValues, yValues) = GetValuesForChart(chartData);
                 maxYValue = Math.Max(maxYValue, yValues.Max());
-                var series = _painter.PainLinearGraph($"{chartYear}", xValues, yValues);
+                var series = _painter.PaintLinearGraph($"{chartYear}", xValues, yValues);
                 forecastinForOneYear.Series.Add(series);
             }
 
@@ -803,7 +803,7 @@ namespace ForecastingWorkingPopulation
             var seriesDataList = new List<ChartDataService.SeriesData>();
             foreach (var values in ageGroupps)
             {
-                var series = _painter.PainLinearGraph($"Возраст: {values.Key}", years, values.Value);
+                var series = _painter.PaintLinearGraph($"Возраст: {values.Key}", years, values.Value);
                 forecastionInOneAge.Series.Add(series);
                 seriesDataList.Add(new ChartDataService.SeriesData
                 {

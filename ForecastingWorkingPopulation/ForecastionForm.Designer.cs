@@ -93,7 +93,6 @@
             // 
             // numericUpDown1
             // 
-            numericUpDown1.Increment = new decimal(new int[] { 3, 0, 0, 0 });
             numericUpDown1.Location = new Point(908, 559);
             numericUpDown1.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
             numericUpDown1.Minimum = new decimal(new int[] { 1, 0, 0, 0 });

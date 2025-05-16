@@ -22,7 +22,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             }
         }
 
-        public Series PainLinearGraph(string name, List<double> xValues, List<double> yValues)
+        public Series PaintLinearGraph(string name, List<double> xValues, List<double> yValues)
         {
             if (xValues.Count != yValues.Count)
                 (xValues, yValues) = FixLenght(xValues, yValues);
@@ -39,7 +39,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             return series;
         }
 
-        public Series PainLinearGraph(string name, List<int> xValues, List<int> yValues)
+        public Series PaintLinearGraph(string name, List<int> xValues, List<int> yValues)
         {
             if (xValues.Count != yValues.Count)
                 (xValues, yValues) = FixLenght(xValues, yValues);

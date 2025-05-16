@@ -28,18 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea7 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend7 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series7 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea8 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend8 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series8 = new System.Windows.Forms.DataVisualization.Charting.Series();
             economyEmploed = new System.Windows.Forms.DataVisualization.Charting.Chart();
             inEconomyLevelSmooth = new System.Windows.Forms.DataVisualization.Charting.Chart();
             inEconomySmoothingLabel = new Label();
@@ -61,6 +61,10 @@
             label4 = new Label();
             label5 = new Label();
             BackButton = new Button();
+            numericUpDownMaxAge = new NumericUpDown();
+            numericUpDownMinAge = new NumericUpDown();
+            label6 = new Label();
+            label7 = new Label();
             ((System.ComponentModel.ISupportInitialize)economyEmploed).BeginInit();
             ((System.ComponentModel.ISupportInitialize)inEconomyLevelSmooth).BeginInit();
             inEconomyLevelSmooth.SuspendLayout();
@@ -68,39 +72,41 @@
             ((System.ComponentModel.ISupportInitialize)economyEmploedSmooth).BeginInit();
             ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)inEconomyWindowSizeNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownMaxAge).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownMinAge).BeginInit();
             SuspendLayout();
             // 
             // economyEmploed
             // 
-            chartArea1.Name = "ChartArea1";
-            economyEmploed.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            economyEmploed.Legends.Add(legend1);
+            chartArea5.Name = "ChartArea1";
+            economyEmploed.ChartAreas.Add(chartArea5);
+            legend5.Name = "Legend1";
+            economyEmploed.Legends.Add(legend5);
             economyEmploed.Location = new Point(58, 49);
             economyEmploed.Name = "economyEmploed";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            economyEmploed.Series.Add(series1);
+            series5.ChartArea = "ChartArea1";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series5.Legend = "Legend1";
+            series5.Name = "Series1";
+            economyEmploed.Series.Add(series5);
             economyEmploed.Size = new Size(763, 379);
             economyEmploed.TabIndex = 0;
             economyEmploed.Text = "EconomyEmploed";
             // 
             // inEconomyLevelSmooth
             // 
-            chartArea2.Name = "ChartArea1";
-            inEconomyLevelSmooth.ChartAreas.Add(chartArea2);
+            chartArea6.Name = "ChartArea1";
+            inEconomyLevelSmooth.ChartAreas.Add(chartArea6);
             inEconomyLevelSmooth.Controls.Add(inEconomySmoothingLabel);
-            legend2.Name = "Legend1";
-            inEconomyLevelSmooth.Legends.Add(legend2);
+            legend6.Name = "Legend1";
+            inEconomyLevelSmooth.Legends.Add(legend6);
             inEconomyLevelSmooth.Location = new Point(860, 478);
             inEconomyLevelSmooth.Name = "inEconomyLevelSmooth";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            inEconomyLevelSmooth.Series.Add(series2);
+            series6.ChartArea = "ChartArea1";
+            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series6.Legend = "Legend1";
+            series6.Name = "Series1";
+            inEconomyLevelSmooth.Series.Add(series6);
             inEconomyLevelSmooth.Size = new Size(809, 443);
             inEconomyLevelSmooth.TabIndex = 1;
             inEconomyLevelSmooth.Text = "InEconomyLevelSmooth";
@@ -116,34 +122,34 @@
             // 
             // inEconomyLevel
             // 
-            chartArea3.Name = "ChartArea1";
-            inEconomyLevel.ChartAreas.Add(chartArea3);
-            legend3.Name = "Legend1";
-            inEconomyLevel.Legends.Add(legend3);
+            chartArea7.Name = "ChartArea1";
+            inEconomyLevel.ChartAreas.Add(chartArea7);
+            legend7.Name = "Legend1";
+            inEconomyLevel.Legends.Add(legend7);
             inEconomyLevel.Location = new Point(58, 476);
             inEconomyLevel.Name = "inEconomyLevel";
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series3.Legend = "Legend1";
-            series3.Name = "Series1";
-            inEconomyLevel.Series.Add(series3);
+            series7.ChartArea = "ChartArea1";
+            series7.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series7.Legend = "Legend1";
+            series7.Name = "Series1";
+            inEconomyLevel.Series.Add(series7);
             inEconomyLevel.Size = new Size(763, 445);
             inEconomyLevel.TabIndex = 2;
             inEconomyLevel.Text = "InEconomyLevel";
             // 
             // economyEmploedSmooth
             // 
-            chartArea4.Name = "ChartArea1";
-            economyEmploedSmooth.ChartAreas.Add(chartArea4);
-            legend4.Name = "Legend1";
-            economyEmploedSmooth.Legends.Add(legend4);
+            chartArea8.Name = "ChartArea1";
+            economyEmploedSmooth.ChartAreas.Add(chartArea8);
+            legend8.Name = "Legend1";
+            economyEmploedSmooth.Legends.Add(legend8);
             economyEmploedSmooth.Location = new Point(865, 49);
             economyEmploedSmooth.Name = "economyEmploedSmooth";
-            series4.ChartArea = "ChartArea1";
-            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series4.Legend = "Legend1";
-            series4.Name = "Series1";
-            economyEmploedSmooth.Series.Add(series4);
+            series8.ChartArea = "ChartArea1";
+            series8.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series8.Legend = "Legend1";
+            series8.Name = "Series1";
+            economyEmploedSmooth.Series.Add(series8);
             economyEmploedSmooth.Size = new Size(799, 379);
             economyEmploedSmooth.TabIndex = 3;
             economyEmploedSmooth.Text = "economyEmploedSmooth";
@@ -293,11 +299,53 @@
             BackButton.UseVisualStyleBackColor = true;
             BackButton.Click += BackButton_Click;
             // 
+            // numericUpDownMaxAge
+            // 
+            numericUpDownMaxAge.Location = new Point(1535, 799);
+            numericUpDownMaxAge.Minimum = new decimal(new int[] { 14, 0, 0, 0 });
+            numericUpDownMaxAge.Name = "numericUpDownMaxAge";
+            numericUpDownMaxAge.Size = new Size(120, 23);
+            numericUpDownMaxAge.TabIndex = 21;
+            numericUpDownMaxAge.Value = new decimal(new int[] { 14, 0, 0, 0 });
+            numericUpDownMaxAge.ValueChanged += NumericUpDownAge_ValueChanged;
+            // 
+            // numericUpDownMinAge
+            // 
+            numericUpDownMinAge.Location = new Point(1535, 758);
+            numericUpDownMinAge.Minimum = new decimal(new int[] { 13, 0, 0, 0 });
+            numericUpDownMinAge.Name = "numericUpDownMinAge";
+            numericUpDownMinAge.Size = new Size(120, 23);
+            numericUpDownMinAge.TabIndex = 22;
+            numericUpDownMinAge.Value = new decimal(new int[] { 13, 0, 0, 0 });
+            numericUpDownMinAge.ValueChanged += NumericUpDownAge_ValueChanged;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(1535, 742);
+            label6.Name = "label6";
+            label6.Size = new Size(135, 15);
+            label6.TabIndex = 23;
+            label6.Text = "Минимальный возраст";
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(1535, 781);
+            label7.Name = "label7";
+            label7.Size = new Size(139, 15);
+            label7.TabIndex = 24;
+            label7.Text = "Максимальный возраст";
+            // 
             // EconomyEmploedForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1744, 934);
+            Controls.Add(label7);
+            Controls.Add(label6);
+            Controls.Add(numericUpDownMinAge);
+            Controls.Add(numericUpDownMaxAge);
             Controls.Add(BackButton);
             Controls.Add(label5);
             Controls.Add(label4);
@@ -328,6 +376,8 @@
             ((System.ComponentModel.ISupportInitialize)economyEmploedSmooth).EndInit();
             ((System.ComponentModel.ISupportInitialize)windowSizeNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)inEconomyWindowSizeNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownMaxAge).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numericUpDownMinAge).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -357,5 +407,9 @@
         private Label label4;
         private Label label5;
         private Button BackButton;
+        private NumericUpDown numericUpDownMaxAge;
+        private NumericUpDown numericUpDownMinAge;
+        private Label label6;
+        private Label label7;
     }
 }

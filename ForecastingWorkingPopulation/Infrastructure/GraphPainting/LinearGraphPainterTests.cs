@@ -22,7 +22,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
             var yValues = new List<double> { 10, 20, 30 };
 
             // Act
-            var result = _painter.PainLinearGraph("Test", xValues, yValues);
+            var result = _painter.PaintLinearGraph("Test", xValues, yValues);
 
             // Assert
             Assert.Equal(3, result.Points.Count);
@@ -59,7 +59,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
         [Fact]
         public void PainLinearGraph_EmptyLists_ReturnsEmptySeries()
         {
-            var result = _painter.PainLinearGraph("EmptyTest", new List<double>(), new List<double>());
+            var result = _painter.PaintLinearGraph("EmptyTest", new List<double>(), new List<double>());
             Assert.Empty(result.Points);
         }
 
@@ -68,7 +68,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
         {
             var x = new List<double> { -1, -2 };
             var y = new List<double> { -10, -20 };
-            var result = _painter.PainLinearGraph("NegativeTest", x, y);
+            var result = _painter.PaintLinearGraph("NegativeTest", x, y);
 
             Assert.Equal(2, result.Points.Count);
             Assert.Equal(-1, result.Points[0].XValue);
@@ -80,7 +80,7 @@ namespace ForecastingWorkingPopulation.Infrastructure.GraphPainting
         {
             var x = new List<int> { 1, 2 };
             var y = new List<int> { 10, 20 };
-            var result = _painter.PainLinearGraph("IntTest", x, y);
+            var result = _painter.PaintLinearGraph("IntTest", x, y);
 
             Assert.Equal(1.0, result.Points[0].XValue);
             Assert.Equal(10.0, result.Points[0].YValues[0]);
