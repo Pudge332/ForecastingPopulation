@@ -41,12 +41,13 @@
             numericUpDown2 = new NumericUpDown();
             label1 = new Label();
             label2 = new Label();
-            button1 = new Button();
+            ExportButton = new Button();
             openFileDialog1 = new OpenFileDialog();
             folderBrowserDialog1 = new FolderBrowserDialog();
             forecastInOneAge = new System.Windows.Forms.DataVisualization.Charting.Chart();
             label3 = new Label();
             label4 = new Label();
+            exitButton = new Button();
             ((System.ComponentModel.ISupportInitialize)forecast).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
@@ -72,7 +73,7 @@
             // 
             // btnPrev
             // 
-            btnPrev.Location = new Point(1575, 593);
+            btnPrev.Location = new Point(1562, 594);
             btnPrev.Margin = new Padding(3, 2, 3, 2);
             btnPrev.Name = "btnPrev";
             btnPrev.Size = new Size(131, 30);
@@ -84,7 +85,7 @@
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(909, 471);
+            comboBox1.Location = new Point(907, 471);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 2;
@@ -131,15 +132,15 @@
             label2.TabIndex = 6;
             label2.Text = "Шаг прогноза";
             // 
-            // button1
+            // ExportButton
             // 
-            button1.Location = new Point(1712, 593);
-            button1.Name = "button1";
-            button1.Size = new Size(118, 30);
-            button1.TabIndex = 7;
-            button1.Text = "Сохранить";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            ExportButton.Location = new Point(1712, 449);
+            ExportButton.Name = "ExportButton";
+            ExportButton.Size = new Size(118, 63);
+            ExportButton.TabIndex = 7;
+            ExportButton.Text = "Экспорт прогноза в эксель";
+            ExportButton.UseVisualStyleBackColor = true;
+            ExportButton.Click += button1_Click;
             // 
             // openFileDialog1
             // 
@@ -151,40 +152,53 @@
             forecastInOneAge.ChartAreas.Add(chartArea2);
             legend2.Name = "Legend1";
             forecastInOneAge.Legends.Add(legend2);
-            forecastInOneAge.Location = new Point(1038, 44);
+            forecastInOneAge.Location = new Point(1048, 44);
             forecastInOneAge.Name = "forecastInOneAge";
             series2.ChartArea = "ChartArea1";
             series2.Legend = "Legend1";
             series2.Name = "Series1";
             forecastInOneAge.Series.Add(series2);
-            forecastInOneAge.Size = new Size(792, 544);
+            forecastInOneAge.Size = new Size(782, 544);
             forecastInOneAge.TabIndex = 8;
             forecastInOneAge.Text = "chart1";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(371, 9);
+            label3.Location = new Point(1321, 24);
             label3.Name = "label3";
-            label3.Size = new Size(269, 15);
+            label3.Size = new Size(307, 15);
             label3.TabIndex = 9;
-            label3.Text = "Прогноз вовлеченного в экономику населения";
+            label3.Text = "Прогноз численности занятого в кэномике населения";
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(1233, 9);
+            label4.Location = new Point(297, 24);
             label4.Name = "label4";
-            label4.Size = new Size(454, 15);
+            label4.Size = new Size(438, 15);
             label4.TabIndex = 10;
-            label4.Text = "Возрастной профиль прогноза вовлеченного в экономику населения населения";
+            label4.Text = "Возрастной профиль прогноза численности занятого в экономике населения";
+            // 
+            // exitButton
+            // 
+            exitButton.Location = new Point(1699, 594);
+            exitButton.Name = "exitButton";
+            exitButton.Size = new Size(131, 30);
+            exitButton.TabIndex = 11;
+            exitButton.Text = "Выход";
+            exitButton.UseVisualStyleBackColor = true;
+            exitButton.Click += exitButton_Click;
             // 
             // ForecastionForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1842, 638);
+            Controls.Add(exitButton);
             Controls.Add(label4);
+            Controls.Add(btnPrev);
+            Controls.Add(ExportButton);
             Controls.Add(label3);
             Controls.Add(forecastInOneAge);
             Controls.Add(label2);
@@ -193,8 +207,6 @@
             Controls.Add(numericUpDown1);
             Controls.Add(comboBox1);
             Controls.Add(forecast);
-            Controls.Add(btnPrev);
-            Controls.Add(button1);
             Margin = new Padding(3, 2, 3, 2);
             Name = "ForecastionForm";
             Text = "ForecastionForm";
@@ -208,6 +220,7 @@
 
         #endregion
 
+        private Button ExportButton;
         private System.Windows.Forms.DataVisualization.Charting.Chart forecast;
         private Button btnPrev;
         private ComboBox comboBox1;
@@ -215,11 +228,11 @@
         private NumericUpDown numericUpDown2;
         private Label label1;
         private Label label2;
-        private Button button1;
         private OpenFileDialog openFileDialog1;
         private FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.DataVisualization.Charting.Chart forecastInOneAge;
         private Label label3;
         private Label label4;
+        private Button exitButton;
     }
 }

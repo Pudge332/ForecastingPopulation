@@ -188,10 +188,8 @@ namespace ForecastingWorkingPopulation
 
         private void btnPrev_Click(object sender, EventArgs e)
         {
-            // Закрываем текущую форму
-            this.Close();
-            // Предыдущая форма (EconomyEmploedForm) будет показана автоматически
-            // благодаря обработчику FormClosed в EconomyEmploedForm
+
+            FormRouting.PreviousForm(3, this);
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -218,6 +216,13 @@ namespace ForecastingWorkingPopulation
             {
                 _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности занятого в экономике населения({regionName})", forecastDictionary);
             }
+        }
+
+        private void exitButton_Click(object sender, EventArgs e)
+        {
+
+
+            FormRouting.NextForm(3, this);
         }
     }
 }

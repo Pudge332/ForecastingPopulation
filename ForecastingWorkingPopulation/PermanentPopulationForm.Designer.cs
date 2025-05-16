@@ -72,6 +72,7 @@
             SaveButton = new Button();
             BackButton = new Button();
             folderBrowserDialog1 = new FolderBrowserDialog();
+            label8 = new Label();
             ((System.ComponentModel.ISupportInitialize)lifeExpectancyCoefficient).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
@@ -102,7 +103,7 @@
             // 
             // numericUpDown1
             // 
-            numericUpDown1.Location = new Point(766, 671);
+            numericUpDown1.Location = new Point(764, 611);
             numericUpDown1.Margin = new Padding(3, 2, 3, 2);
             numericUpDown1.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numericUpDown1.Minimum = new decimal(new int[] { 10000, 0, 0, int.MinValue });
@@ -113,26 +114,28 @@
             // 
             // numericUpDown2
             // 
-            numericUpDown2.Location = new Point(764, 723);
+            numericUpDown2.Location = new Point(764, 692);
             numericUpDown2.Margin = new Padding(3, 2, 3, 2);
             numericUpDown2.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numericUpDown2.Name = "numericUpDown2";
             numericUpDown2.Size = new Size(105, 23);
             numericUpDown2.TabIndex = 6;
+            numericUpDown2.ValueChanged += AgeNumerics_ValueChanged;
             // 
             // numericUpDown3
             // 
-            numericUpDown3.Location = new Point(764, 764);
+            numericUpDown3.Location = new Point(764, 733);
             numericUpDown3.Margin = new Padding(3, 2, 3, 2);
             numericUpDown3.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             numericUpDown3.Name = "numericUpDown3";
             numericUpDown3.Size = new Size(105, 23);
             numericUpDown3.TabIndex = 7;
+            numericUpDown3.ValueChanged += AgeNumerics_ValueChanged;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(766, 706);
+            label3.Location = new Point(766, 675);
             label3.Name = "label3";
             label3.Size = new Size(38, 15);
             label3.TabIndex = 8;
@@ -141,7 +144,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(765, 748);
+            label4.Location = new Point(765, 717);
             label4.Name = "label4";
             label4.Size = new Size(38, 15);
             label4.TabIndex = 9;
@@ -227,7 +230,7 @@
             forecastionInOneAge.ChartAreas.Add(chartArea3);
             legend3.Name = "Legend1";
             forecastionInOneAge.Legends.Add(legend3);
-            forecastionInOneAge.Location = new Point(963, 55);
+            forecastionInOneAge.Location = new Point(977, 462);
             forecastionInOneAge.Margin = new Padding(3, 2, 3, 2);
             forecastionInOneAge.Name = "forecastionInOneAge";
             series3.ChartArea = "ChartArea1";
@@ -235,7 +238,7 @@
             series3.Legend = "Legend1";
             series3.Name = "Series2";
             forecastionInOneAge.Series.Add(series3);
-            forecastionInOneAge.Size = new Size(821, 344);
+            forecastionInOneAge.Size = new Size(821, 339);
             forecastionInOneAge.TabIndex = 17;
             forecastionInOneAge.Text = "chart1";
             // 
@@ -245,7 +248,7 @@
             forecastinForOneYear.ChartAreas.Add(chartArea4);
             legend4.Name = "Legend1";
             forecastinForOneYear.Legends.Add(legend4);
-            forecastinForOneYear.Location = new Point(963, 461);
+            forecastinForOneYear.Location = new Point(977, 55);
             forecastinForOneYear.Margin = new Padding(3, 2, 3, 2);
             forecastinForOneYear.Name = "forecastinForOneYear";
             series4.ChartArea = "ChartArea1";
@@ -253,7 +256,7 @@
             series4.Legend = "Legend1";
             series4.Name = "Series3";
             forecastinForOneYear.Series.Add(series4);
-            forecastinForOneYear.Size = new Size(821, 340);
+            forecastinForOneYear.Size = new Size(821, 344);
             forecastinForOneYear.TabIndex = 19;
             forecastinForOneYear.Text = "chart2";
             // 
@@ -271,7 +274,7 @@
             // NoTrim
             // 
             NoTrim.AutoSize = true;
-            NoTrim.Location = new Point(766, 562);
+            NoTrim.Location = new Point(764, 502);
             NoTrim.Name = "NoTrim";
             NoTrim.Size = new Size(176, 19);
             NoTrim.TabIndex = 21;
@@ -283,7 +286,7 @@
             // TrimToOne
             // 
             TrimToOne.AutoSize = true;
-            TrimToOne.Location = new Point(765, 602);
+            TrimToOne.Location = new Point(763, 542);
             TrimToOne.Name = "TrimToOne";
             TrimToOne.Size = new Size(139, 19);
             TrimToOne.TabIndex = 22;
@@ -295,7 +298,7 @@
             // TrimToDelta
             // 
             TrimToDelta.AutoSize = true;
-            TrimToDelta.Location = new Point(765, 642);
+            TrimToDelta.Location = new Point(763, 582);
             TrimToDelta.Name = "TrimToDelta";
             TrimToDelta.Size = new Size(104, 19);
             TrimToDelta.TabIndex = 23;
@@ -306,11 +309,11 @@
             // 
             // label1
             // 
-            label1.Location = new Point(765, 498);
+            label1.Location = new Point(466, 818);
             label1.Name = "label1";
             label1.Size = new Size(167, 55);
             label1.TabIndex = 24;
-            label1.Text = "Коэффициенты для рассчета взвешенного среднего КПЖ по годам ";
+            label1.Text = "Весовые коэффициенты для рассчета взвешенного среднего КПЖ по годам ";
             // 
             // label2
             // 
@@ -350,11 +353,11 @@
             // 
             // SaveButton
             // 
-            SaveButton.Location = new Point(1433, 810);
+            SaveButton.Location = new Point(1667, 658);
             SaveButton.Name = "SaveButton";
-            SaveButton.Size = new Size(131, 30);
+            SaveButton.Size = new Size(131, 48);
             SaveButton.TabIndex = 29;
-            SaveButton.Text = "Сохранить";
+            SaveButton.Text = "Экспорт прогноза в эксель";
             SaveButton.UseVisualStyleBackColor = true;
             SaveButton.Click += SaveButton_Click;
             // 
@@ -368,11 +371,20 @@
             BackButton.UseVisualStyleBackColor = true;
             BackButton.Click += BackButton_Click;
             // 
+            // label8
+            // 
+            label8.Location = new Point(764, 461);
+            label8.Name = "label8";
+            label8.Size = new Size(138, 38);
+            label8.TabIndex = 31;
+            label8.Text = "Метод обработки ПКЖ для прогнозирования";
+            // 
             // PermanentPopulationForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1850, 871);
+            ClientSize = new Size(1850, 894);
+            Controls.Add(label8);
             Controls.Add(BackButton);
             Controls.Add(SaveButton);
             Controls.Add(label7);
@@ -443,5 +455,6 @@
         private Button SaveButton;
         private Button BackButton;
         private FolderBrowserDialog folderBrowserDialog1;
+        private Label label8;
     }
 }

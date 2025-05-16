@@ -194,15 +194,9 @@ namespace ForecastingWorkingPopulation
                 var currentGroup = SelectByGender(genderComboValue, group);
                 var xValues = currentGroup.Select(dto => dto.Age).Select(Convert.ToDouble).ToList();
                 var yValues = currentGroup.Select(dto => dto.SummaryByYear).Select(Convert.ToDouble).ToList();
-                if ((int)smoothComboValue > 0)
-                {
-                    yValues = _smoothingCalculator.SmoothingValues(currentGroup, windowSize: _windowSize, SmoothingType.MovingAverageWindow, (int)smoothComboValue);
-                    CalculationStorage.Instance.StorePermanentPopulationStatisticsSmoothed(group.Key, currentGroup.ToList());
-                }
-                else
-                {
-                    CalculationStorage.Instance.StorePermanentPopulationRegionStatistics(group.Key, group.ToList());
-                }
+
+                yValues = _smoothingCalculator.SmoothingValues(currentGroup, windowSize: _windowSize, SmoothingType.MovingAverageWindow, (int)smoothComboValue);
+                CalculationStorage.Instance.StorePermanentPopulationForecastData(group.Key, currentGroup.ToList());
 
                 if (genderComboValue == GenderComboBox.All)
                 {
@@ -654,12 +648,7 @@ namespace ForecastingWorkingPopulation
 
             // Получаем данные о населении
             var populationData = new List<RegionStatisticsDto>();
-            if ((SmoothComboBox)smoothingComboBox.SelectedIndex > 0)
-                populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
-            else
-                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
-            if (!populationData.Any())
-                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            populationData = CalculationStorage.Instance.GetPermanentPopulationForecastDataValues();
             if (!populationData.Any())
                 populationData = _populationRepository.GetPopulationInRegion(regionId);
 
@@ -830,15 +819,7 @@ namespace ForecastingWorkingPopulation
             // Сохраняем настройки перед переходом на следующую форму
             SaveSettings();
 
-            // Открываем форму EconomyEmploedForm
-            var economyForm = new EconomyEmploedForm();
-            economyForm.Show();
-
-            // Скрываем текущую форму
-            this.Hide();
-
-            // Добавляем обработчик закрытия формы EconomyEmploedForm
-            economyForm.FormClosed += (s, args) => this.Show();
+            FormRouting.NextForm(1, this);
         }
 
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
@@ -851,19 +832,37 @@ namespace ForecastingWorkingPopulation
                 {
                     case "NoTrim":
                         _maxCoefficentValue = decimal.MaxValue;
+                        SetActiveToLamdaNumericUpDown(false);
                         break;
                     case "TrimToOne":
                         _maxCoefficentValue = 1;
+                        SetActiveToLamdaNumericUpDown(false);
                         break;
                     default:
-                        _maxCoefficentValue = 1 + numericUpDown1.Value;
+                        _maxCoefficentValue = 1 + numericUpDown1.Value / (decimal)100; 
+                        SetActiveToLamdaNumericUpDown(true);
                         break;
                 }
                 CalculateCoefficents();
             }
         }
 
+        private void SetActiveToLamdaNumericUpDown(bool active)
+        {
+            if (active)
+            {
+                numericUpDown1.Enabled = true;
+                return;
+            }
+            numericUpDown1.Enabled = false;
+        }
+
         private void YearNumerics_ValueChanged(object sender, EventArgs e)
+        {
+            CalculateCoefficents();
+        }
+
+        private void AgeNumerics_ValueChanged(object sender, EventArgs e)
         {
             CalculateCoefficents();
         }
@@ -894,7 +893,10 @@ namespace ForecastingWorkingPopulation
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            this.Hide();
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
+
+            FormRouting.PreviousForm(1, this);
         }
     }
 }

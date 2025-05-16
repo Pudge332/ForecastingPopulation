@@ -250,20 +250,20 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(343, 19);
+            label2.Location = new Point(334, 19);
             label2.Name = "label2";
-            label2.Size = new Size(184, 15);
+            label2.Size = new Size(244, 15);
             label2.TabIndex = 16;
-            label2.Text = "Результаты первичных опросов";
+            label2.Text = "Результаты опросов численности занятых ";
             // 
             // label3
             // 
             label3.AutoSize = true;
             label3.Location = new Point(334, 446);
             label3.Name = "label3";
-            label3.Size = new Size(193, 15);
+            label3.Size = new Size(223, 15);
             label3.TabIndex = 17;
-            label3.Text = "Ретроспектива уровеня занятости";
+            label3.Text = "Уровни занятости для пронозиварония";
             // 
             // label4
             // 

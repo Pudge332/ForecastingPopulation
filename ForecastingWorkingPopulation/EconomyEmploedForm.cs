@@ -201,16 +201,12 @@ namespace ForecastingWorkingPopulation
         {
             var regionId = CalculationStorage.Instance.CurrentRegion;
             var economyData = new List<RegionStatisticsDto>();
-            //economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValuesSmoothed();
-            //if (!economyData.Any())
-            //    economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues();
+            economyData = CalculationStorage.Instance.GetEconomyEmploedForecastDataValues();
             if (!economyData.Any())
                 economyData = _repository.GetEconomyEmployedInRegion(regionId);
 
             var populationData = new List<RegionStatisticsDto>();
-            populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
-            if (!populationData.Any())
-                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            populationData = CalculationStorage.Instance.GetPermanentPopulationForecastDataValues();
             if (!populationData.Any())
                 populationData = _repository.GetPopulationInRegion(regionId);
 
@@ -421,16 +417,18 @@ namespace ForecastingWorkingPopulation
             foreach (var seriesData in data)
             {
                 var statisticsData = new List<RegionStatisticsDto>();
+                var year = int.Parse(seriesData.SeriesName);
                 for (int i = 0; i < seriesData.XValues.Count; i++)
                 {
                     statisticsData.Add(new RegionStatisticsDto
                     {
                         Age = (int)seriesData.XValues[i],
                         SummaryByYear = (int)seriesData.YValues[i],
+                        Year = year,
                         Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
                     });
                 }
-                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(int.Parse(seriesData.SeriesName), statisticsData);
+                CalculationStorage.Instance.StoreEconomyEmploedRegionStatistics(year, statisticsData);
             }
         }
 
@@ -456,6 +454,7 @@ namespace ForecastingWorkingPopulation
             foreach (var seriesData in data)
             {
                 var statisticsData = new List<RegionStatisticsDto>();
+                var year = int.Parse(seriesData.SeriesName);
                 for (int i = 0; i < seriesData.XValues.Count; i++)
                 {
                     statisticsData.Add(new RegionStatisticsDto
@@ -463,131 +462,24 @@ namespace ForecastingWorkingPopulation
                         Age = (int)seriesData.XValues[i],
                         SummaryByYear = (int)seriesData.YValues[i],
                         SummaryByYearSmoothed = seriesData.YValues[i],
+                        Year = year,
                         Gender = seriesData.SeriesName.Contains("Мужчины") ? Models.Enums.Gender.Male : Models.Enums.Gender.Female
                     });
                 }
-                CalculationStorage.Instance.StoreEconomyEmploedRegionStatisticsSmoothed(int.Parse(seriesData.SeriesName), statisticsData);
+                CalculationStorage.Instance.StoreEconomyEmploedForecastData(year, statisticsData);
             }
-        }
-
-        private void UpdateInEconomyLevelChart(bool yea)
-        {
-            var regionId = CalculationStorage.Instance.CurrentRegion;
-            var economyData = new List<RegionStatisticsDto>();
-            //economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValuesSmoothed();
-            //if (!economyData.Any())
-            //   economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues();
-            if (!economyData.Any())
-                economyData = _repository.GetEconomyEmployedInRegion(regionId);
-
-            var populationData = new List<RegionStatisticsDto>();
-            populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
-            if (!populationData.Any())
-                populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
-            if (!populationData.Any())
-                populationData = _repository.GetPopulationInRegion(regionId);
-
-            // Очищаем график
-            inEconomyLevel.Series.Clear();
-
-            // Создаем серии для мужчин и женщин
-            var malesSeries = new Series("Мужчины") { ChartType = SeriesChartType.Line };
-            var femalesSeries = new Series("Женщины") { ChartType = SeriesChartType.Line };
-
-            // Группируем данные по возрасту и полу для расчета средних значений
-            var economyByAgeAndGender = economyData
-                .GroupBy(d => new { d.Age, d.Gender })
-                .Select(g => new
-                {
-                    Age = g.Key.Age,
-                    Gender = g.Key.Gender,
-                    AverageEconomy = g.Average(d => d.SummaryByYear)
-                });
-
-            var populationByAgeAndGender = populationData
-                .GroupBy(d => new { d.Age, d.Gender })
-                .Select(g => new
-                {
-                    Age = g.Key.Age,
-                    Gender = g.Key.Gender,
-                    AveragePopulation = g.Average(d => d.SummaryByYear)
-                });
-
-            // Объединяем данные и вычисляем коэффициенты
-            var coefficients = economyByAgeAndGender
-                .Join(populationByAgeAndGender,
-                    e => new { e.Age, e.Gender },
-                    p => new { p.Age, p.Gender },
-                    (e, p) => new
-                    {
-                        Age = e.Age,
-                        Gender = e.Gender,
-                        Coefficient = p.AveragePopulation > 0 ? e.AverageEconomy / p.AveragePopulation : 0
-                    })
-                .OrderBy(c => c.Age)
-                .ToList();
-
-            // Заполняем серии данными
-            foreach (var item in coefficients.Where(c => c.Gender == Gender.Male))
-            {
-                malesSeries.Points.AddXY(item.Age, item.Coefficient);
-            }
-
-            foreach (var item in coefficients.Where(c => c.Gender == Gender.Female))
-            {
-                femalesSeries.Points.AddXY(item.Age, item.Coefficient);
-            }
-
-            // Добавляем серии на график
-            inEconomyLevel.Series.Add(malesSeries);
-            inEconomyLevel.Series.Add(femalesSeries);
-
-            // Настраиваем оси
-            inEconomyLevel.ChartAreas[0].AxisX.Title = "Возраст";
-            inEconomyLevel.ChartAreas[0].AxisY.Title = "Коэффициент занятости в экономике";
-            inEconomyLevel.ChartAreas[0].AxisX.Minimum = 0;
-
-            // Устанавливаем максимальное значение по оси Y
-            double maxY = 0;
-            if (coefficients.Any())
-            {
-                var maleMax = coefficients.Where(c => c.Gender == Gender.Male).Any() ?
-                    coefficients.Where(c => c.Gender == Gender.Male).Max(c => c.Coefficient) : 0;
-                var femaleMax = coefficients.Where(c => c.Gender == Gender.Female).Any() ?
-                    coefficients.Where(c => c.Gender == Gender.Female).Max(c => c.Coefficient) : 0;
-                maxY = Math.Max(maleMax, femaleMax);
-            }
-            SetYAxisMaximum(inEconomyLevel, maxY, "InEconomyLevelMaxY");
-
-            // Сохраняем данные в CalculationStorage
-            var coefficientsData = coefficients.Select(c => new RegionInEconomyLevelDto
-            {
-                Age = c.Age,
-                Gender = c.Gender,
-                Level = c.Coefficient
-            }).ToList();
-
-            // Сохраняем данные в хранилище
-            CalculationStorage.Instance.StoreInEconomyLevel(coefficientsData);
-
-            // Обновляем график со сглаживанием, но только если это вызвано из конструктора или из обработчиков событий элементов управления графика уровня занятости
-            UpdateInEconomyLevelSmoothChart();
         }
 
         private void UpdateInEconomyLevelChart()
         {
             var regionId = CalculationStorage.Instance.CurrentRegion;
             var economyData = new List<RegionStatisticsDto>();
-            //economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValuesSmoothed();
-            //if (!economyData.Any())
-            //   economyData = CalculationStorage.Instance.GetEconomyEmploedRegionStatisticsValues();
+            economyData = CalculationStorage.Instance.GetEconomyEmploedForecastDataValues();
             if (!economyData.Any())
                 economyData = _repository.GetEconomyEmployedInRegion(regionId);
 
             var populationData = new List<RegionStatisticsDto>();
-            //populationData = CalculationStorage.Instance.GetPermanentPopulationStatisticsValuesSmoothed();
-            //if (!populationData.Any())
-            //    populationData = CalculationStorage.Instance.GetPermanentPopulationRegionStatisticsValues();
+            populationData = CalculationStorage.Instance.GetPermanentPopulationForecastDataValues();
             if (!populationData.Any())
                 populationData = _repository.GetPopulationInRegion(regionId);
 
@@ -698,53 +590,20 @@ namespace ForecastingWorkingPopulation
             return Color.FromArgb(alphaValue, color);
         }
 
-        private void btnPrev_Click(object sender, EventArgs e)
-        {
-            // Сохраняем настройки перед переходом на предыдущую форму
-            SaveSettings();
-
-            // Закрываем текущую форму
-            this.Close();
-            // Предыдущая форма (PermanentPopulationForm) будет показана автоматически
-            // благодаря обработчику FormClosed в PermanentPopulationForm
-        }
-
-        private void btnNext_Click(object sender, EventArgs e)
-        {
-            // Сохраняем настройки перед переходом на следующую форму
-            SaveSettings();
-
-            // Открываем форму ForecastionForm
-            var forecastForm = new ForecastionForm();
-            forecastForm.Show();
-
-            // Скрываем текущую форму
-            this.Hide();
-
-            // Добавляем обработчик закрытия формы ForecastionForm
-            forecastForm.FormClosed += (s, args) => this.Show();
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             // Сохраняем настройки перед переходом на следующую форму
             SaveSettings();
 
-            // Открываем форму EconomyEmploedForm
-            var forecastForm = new ForecastionForm();
-            forecastForm.Show();
-
-            // Скрываем текущую форму
-            this.Hide();
-
-            // Добавляем обработчик закрытия формы EconomyEmploedForm
-            forecastForm.FormClosed += (s, args) => this.Show();
+            FormRouting.NextForm(2, this);
         }
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            // Скрываем текущую форму
-            this.Close();
+            // Сохраняем настройки перед переходом на следующую форму
+            SaveSettings();
+
+            FormRouting.PreviousForm(2, this);
         }
     }
 }

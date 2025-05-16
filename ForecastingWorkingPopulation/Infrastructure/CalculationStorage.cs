@@ -7,21 +7,30 @@ namespace ForecastingWorkingPopulation.Infrastructure
     public sealed class CalculationStorage
     {
         private static readonly CalculationStorage instance = new CalculationStorage();
-        private List<RegionCoefficentDto> lifeExpectancyDataMale;
-        private List<RegionCoefficentDto> lifeExpectancyDataFemale;
         private List<RegionInEconomyLevelDto> inEconomyLevelData;
         private List<RegionInEconomyLevelDto> inEconomyLevelDataSmoothed;
         private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsData;
         private Dictionary<int, List<RegionStatisticsDto>> economyEmploedRegionStatisticsDataSmoothed;
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationdRegionStatisticsData;
         private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationStatisticsDataSmoothed;
-        public Dictionary<int, List<RegionStatisticsDto>> PermanentPopulationForecast { get; set; }
         public int currentRegion;
 
         private List<int> availableYears = new List<int>();
 
+        #region Данные для расчета прогноза
+        private Dictionary<int, List<RegionStatisticsDto>> permanentPopulationdForecastData;
+        private Dictionary<int, List<RegionStatisticsDto>> economyEmploedForecastData;
+        private List<RegionInEconomyLevelDto> forForecastData;
+        private List<RegionCoefficentDto> lifeExpectancyDataMale;
+        private List<RegionCoefficentDto> lifeExpectancyDataFemale;
+        public Dictionary<int, List<RegionStatisticsDto>> PermanentPopulationForecast { get; set; }
+        #endregion
+
         private CalculationStorage()
         {
+            permanentPopulationdForecastData = new Dictionary<int, List<RegionStatisticsDto>>();
+            economyEmploedForecastData = new Dictionary<int, List<RegionStatisticsDto>>();
+            forForecastData = new List<RegionInEconomyLevelDto>();
             lifeExpectancyDataMale = new List<RegionCoefficentDto>();
             lifeExpectancyDataFemale = new List<RegionCoefficentDto>();
             inEconomyLevelData = new List<RegionInEconomyLevelDto>();
@@ -36,6 +45,60 @@ namespace ForecastingWorkingPopulation.Infrastructure
         public static CalculationStorage Instance
         {
             get { return instance; }
+        }
+
+        public void StorePermanentPopulationForecastData(int year, List<RegionStatisticsDto> data)
+        {
+            if (permanentPopulationdForecastData.ContainsKey(year))
+            {
+                permanentPopulationdForecastData.Remove(year);
+                permanentPopulationdForecastData.Add(year, data);
+            }
+            else
+            {
+                permanentPopulationdForecastData.Add(year, data);
+            }
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyPermanentPopulationForecastData()
+        {
+            return permanentPopulationdForecastData;
+        }
+
+        public List<RegionStatisticsDto> GetPermanentPopulationForecastDataValues()
+        {
+            return permanentPopulationdForecastData.Values.SelectMany(x => x).ToList();
+        }
+
+        public void StoreInEconomyForecastDataLevel(List<RegionInEconomyLevelDto> data)
+        {
+            forForecastData = new(data);
+        }
+
+        public List<RegionInEconomyLevelDto> GetInEconomyLevelForecastData() =>
+            forForecastData;
+
+        public void StoreEconomyEmploedForecastData(int year, List<RegionStatisticsDto> data)
+        {
+            if (economyEmploedForecastData.ContainsKey(year))
+            {
+                economyEmploedForecastData.Remove(year);
+                economyEmploedForecastData.Add(year, data);
+            }
+            else
+            {
+                economyEmploedForecastData.Add(year, data);
+            }
+        }
+
+        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyEmploedForecastData()
+        {
+            return economyEmploedForecastData;
+        }
+
+        public List<RegionStatisticsDto> GetEconomyEmploedForecastDataValues()
+        {
+            return economyEmploedForecastData.Values.SelectMany(x => x).ToList();
         }
 
         public void StoreLifeExpectancyCalculation(List<RegionCoefficentDto> data, Gender gender)
