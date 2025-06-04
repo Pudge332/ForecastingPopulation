@@ -42,6 +42,7 @@ namespace ForecastingWorkingPopulation
 
             // Данные для графика уровня занятости в экономике
             UpdateInEconomyLevelChart();
+            this.Text = $"Занятое население региона (ID: {regionId} - {RegionRepository.GetRegionNameById(regionId)})";
         }
 
         private void InitControls()
@@ -113,14 +114,12 @@ namespace ForecastingWorkingPopulation
 
             var genderValue = (GenderComboBox)genderComboBox.SelectedIndex;
             var smoothingValue = (SmoothComboBox)smoothingComboBox.SelectedIndex;
-
             var economyEmploedSmoothData = _chartService.PrepareChartData(
                 data,
                 genderValue,
                 _windowSize,
                 (int)smoothingValue,
                 useSmoothing: (int)smoothingValue > 0);
-
             PaintSmoothChart(economyEmploedSmoothData);
         }
 
@@ -231,8 +230,23 @@ namespace ForecastingWorkingPopulation
                 });
             
             var smoothingCount = inEconomySmoothingComboBox.SelectedIndex;
-            if(smoothingCount > 0)
-                visualizationValues = _smoothingCalculator.SmoothingValuesDto(visualizationValues, _inEconomyWindowSize, SmoothingType.MovingAverageWindow, smoothingCount);
+            if (smoothingCount > 0)
+            {
+                var maleVisualizationValues = _smoothingCalculator.SmoothingValuesDto(
+                    visualizationValues.Where(value => value.Gender == Gender.Male), 
+                    _inEconomyWindowSize, 
+                    SmoothingType.MovingAverageWindow, 
+                    smoothingCount);
+
+                var femaleVisualizationValues = _smoothingCalculator.SmoothingValuesDto(
+                    visualizationValues.Where(value => value.Gender == Gender.Female), 
+                    _inEconomyWindowSize, 
+                    SmoothingType.MovingAverageWindow, 
+                    smoothingCount);
+
+                maleVisualizationValues.AddRange(femaleVisualizationValues);
+                visualizationValues = maleVisualizationValues;
+            }
 
             visualizationValues = visualizationValues.Where(x => x.Age <= _maxAge && x.Age >= _minAge).ToList();
             var maleValues = visualizationValues.Where(x => x.Gender == Gender.Male).OrderBy(x => x.Age);
@@ -260,6 +274,8 @@ namespace ForecastingWorkingPopulation
         {
             // Находим максимальное значение Y среди всех серий
             double maxY = 0;
+            if (!data.Any())
+                return;
             maxY = data.Max(x => x.SummaryByYearSmoothed);
 
             // Устанавливаем максимальное значение оси Y с запасом 35%
@@ -461,13 +477,13 @@ namespace ForecastingWorkingPopulation
 
                 if (hasMaleValues)
                 {
-                    malesSeries.Points.AddXY(age, maleAverageValue);
-                    maleAverageValues.Add(new RegionInEconomyLevelDto
-                    {
-                        Age = age,
-                        Gender = Gender.Male,
-                        Level = maleAverageValue
-                    });
+                        malesSeries.Points.AddXY(age, maleAverageValue);
+                        maleAverageValues.Add(new RegionInEconomyLevelDto
+                        {
+                            Age = age,
+                            Gender = Gender.Male,
+                            Level = maleAverageValue
+                        });
                 }
                 if (hasFemaleValues)
                 {

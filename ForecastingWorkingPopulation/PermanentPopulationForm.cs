@@ -24,6 +24,7 @@ namespace ForecastingWorkingPopulation
         private int _minAge = 0;
         private int _maxAge = 80;
         private int _radioButtonIndex = 0;
+        private int _coefficentsSmoothingCount = 0;
 
         private Dictionary<int, YearControl> _yearControls = new Dictionary<int, YearControl>();
 
@@ -76,7 +77,10 @@ namespace ForecastingWorkingPopulation
             smoothingComboBox.Items.Add("1X");
             smoothingComboBox.Items.Add("2X");
             smoothingComboBox.Items.Add("3X");
-
+            smoothingCoefficents.Items.Add("NO");
+            smoothingCoefficents.Items.Add("1X");
+            smoothingCoefficents.Items.Add("2X");
+            smoothingCoefficents.Items.Add("3X");
             genderComboBox.SelectedIndex = 0;
             smoothingComboBox.SelectedIndex = 0;
             genderComboBox.SelectedIndexChanged += GenderComboBoxChanged;
@@ -100,7 +104,11 @@ namespace ForecastingWorkingPopulation
                 // Загружаем настройки
                 genderComboBox.SelectedIndex = settings.SelectedGender;
                 smoothingComboBox.SelectedIndex = settings.SelectedSmoothing;
-                windowSizeNumericUpDown.Value = settings.WindowSize;
+                if(settings.WindowSize > 0)
+                    windowSizeNumericUpDown.Value = settings.WindowSize;
+                if(settings.CoefficientWindowSize > 0)
+                    windowSizeCoefficient.Value = settings.CoefficientWindowSize;
+                smoothingCoefficents.SelectedIndex = settings.SelectedCoefficientSmoothing;
                 _windowSize = settings.WindowSize;
                 numericUpDown1.Value = settings.DeltaValue;
                 _radioButtonIndex = settings.SelectedCoefficientProcessing;
@@ -125,16 +133,18 @@ namespace ForecastingWorkingPopulation
                 SelectedSmoothing = smoothingComboBox.SelectedIndex,
                 WindowSize = (int)windowSizeNumericUpDown.Value,
                 DeltaValue = (int)numericUpDown1.Value,
-                SelectedCoefficientProcessing = _radioButtonIndex
+                SelectedCoefficientProcessing = _radioButtonIndex,
+                CoefficientWindowSize = (int)windowSizeCoefficient.Value,
+                SelectedCoefficientSmoothing = smoothingCoefficents.SelectedIndex
             };
 
             // Сохраняем текущее максимальное значение оси Y, если оно установлено
             if (PermanentPopulation.ChartAreas.Count > 0 && PermanentPopulation.ChartAreas[0].AxisY.Maximum != double.NaN)
             {
                 var existingSettings = _populationRepository.GetRegionMainFormSettings(regionId);
-                if (existingSettings != null && existingSettings.PermanentPopulationMaxY > 0)
+                if (existingSettings != null && existingSettings.PermanentPopulationMaximumY > 0)
                 {
-                    settings.PermanentPopulationMaxY = existingSettings.PermanentPopulationMaxY; 
+                    settings.PermanentPopulationMaximumY = existingSettings.PermanentPopulationMaximumY;
                 }
             }
 
@@ -196,7 +206,7 @@ namespace ForecastingWorkingPopulation
             var populationDtos = _populationRepository.GetPopulationInRegion(regionId);
 
             // Обновляем заголовок формы, чтобы показать текущий регион
-            this.Text = $"Постоянное население региона (ID: {regionId})";
+            this.Text = $"Постоянное население региона (ID: {regionId} - {RegionRepository.GetRegionNameById(regionId)})";
 
             PaintChartData(populationDtos, genderComboValue, smoothComboValue, PermanentPopulation);
         }
@@ -285,7 +295,7 @@ namespace ForecastingWorkingPopulation
             // Получаем сохраненное максимальное значение, если оно есть
             if (settings != null && settingPropertyName == "PermanentPopulationMaxY")
             {
-                savedMaxY = settings.PermanentPopulationMaxY;
+                savedMaxY = settings.PermanentPopulationMaximumY;
             }
 
             // Увеличиваем максимальное значение на 35%
@@ -305,7 +315,7 @@ namespace ForecastingWorkingPopulation
                 {
                     if (settingPropertyName == "PermanentPopulationMaxY")
                     {
-                        settings.PermanentPopulationMaxY = finalMaxY;
+                        settings.PermanentPopulationMaximumY = finalMaxY;
                         _populationRepository.SaveRegionMainFormSettings(settings);
                     }
                 }
@@ -340,9 +350,6 @@ namespace ForecastingWorkingPopulation
                 dtos = _populationRepository.GetPopulationInRegion(regionNumber);
             var years = dtos.Select(dto => dto.Year).Distinct().OrderBy(x => x);
 
-            // Обновляем заголовок формы, чтобы показать текущий регион
-            this.Text = $"Постоянное население региона (ID: {regionNumber})";
-
             // Отдельные списки для мужчин и женщин
             var coefficentDtosMale = new List<RegionCoefficentDto>();
             var coefficentDtosFemale = new List<RegionCoefficentDto>();
@@ -374,6 +381,15 @@ namespace ForecastingWorkingPopulation
             var grouppedDtosFemale = GetAverage(coefficentDtosFemale);
             // Устанавливаем пол для всех записей
             grouppedDtosFemale.ForEach(dto => dto.Gender = Gender.Female);
+
+            if (_coefficentsSmoothingCount > 0)
+            {
+                grouppedDtosMale = _smoothingCalculator.SmoothingValuesDto(grouppedDtosMale, (int)windowSizeCoefficient.Value, SmoothingType.MovingAverageWindow, _coefficentsSmoothingCount);
+                grouppedDtosFemale = _smoothingCalculator.SmoothingValuesDto(grouppedDtosFemale, (int)windowSizeCoefficient.Value, SmoothingType.MovingAverageWindow, _coefficentsSmoothingCount);
+            }
+
+            grouppedDtosMale = grouppedDtosMale.Where(coefficent => coefficent.Age >= _minAge && coefficent.Age <= _maxAge).ToList();
+            grouppedDtosFemale = grouppedDtosFemale.Where(coefficent => coefficent.Age >= _minAge && coefficent.Age <= _maxAge).ToList();
 
             // Создаем серию для мужчин
             var xValuesMale = new List<double>();
@@ -413,7 +429,7 @@ namespace ForecastingWorkingPopulation
 
         private void CreateYearControls()
         {
-            var startX = 10;
+            var startX = label1.Right + 10;
             var startY = lifeExpectancyCoefficient.Bottom + 10;
 
             // Clear existing controls if the number of years has changed
@@ -536,7 +552,7 @@ namespace ForecastingWorkingPopulation
                 });
             }
 
-            return coefficents.Where(coefficent => coefficent.Age >= _minAge && coefficent.Age <= _maxAge).ToList();
+            return coefficents;
         }
 
         private void LoadRegionCoefficientSettings(int regionNumber)
@@ -685,8 +701,8 @@ namespace ForecastingWorkingPopulation
             for (int year = 2025; year < 2046; year++)
             {
                 var dtos = CreateEmptyDtos(year);
-                dtos[0].SummaryByYearSmoothed = birthRates.FirstOrDefault(x => x.Year == year).BirthRate * 0.51;
-                dtos[1].SummaryByYearSmoothed = birthRates.FirstOrDefault(x => x.Year == year).BirthRate * 0.49;
+                dtos[0].SummaryByYearSmoothed = (birthRates.FirstOrDefault(x => x.Year == year)?.BirthRate ?? 0) * 0.51;
+                dtos[1].SummaryByYearSmoothed = (birthRates.FirstOrDefault(x => x.Year == year)?.BirthRate ?? 0) * 0.49;
                 for (int index = 2; index < dtos.Count - 1; index += 2)
                 {
                     var age = index / 2;
@@ -717,39 +733,6 @@ namespace ForecastingWorkingPopulation
             forecastinForOneYear.ChartAreas[0].AxisY.Maximum = maxYValue * 1.3;
             CalculationStorage.Instance.PermanentPopulationForecast = forecastByYears;
             FillForecastInOneAgeChart();
-        }
-
-        private (List<double>, List<double>) SelectByGender(List<RegionStatisticsDto> dtos)
-        {
-            switch ((GenderComboBox)genderComboBox.SelectedIndex)
-            {
-                case GenderComboBox.All:
-                    return GetValuesForChart(dtos);
-                    break;
-                case GenderComboBox.Males:
-                    return GetValuesForChart(dtos, Gender.Male);
-                    break;
-                default:
-                    return GetValuesForChart(dtos, Gender.Female);
-            }
-        }
-
-        private (List<double>, List<double>) GetValuesForChart(List<RegionStatisticsDto> dtos, Gender? gender = null)
-        {
-            var xValues = new List<double>();
-            var yValues = new List<double>();
-
-            foreach (var age in dtos.Select(dto => dto.Age).Distinct())
-            {
-                xValues.Add(age);
-                var currentDtos = dtos.Where(dto => dto.Age == age);
-                if (gender != null)
-                    currentDtos = currentDtos.Where(dto => dto.Gender == gender);
-
-                yValues.Add(currentDtos.Sum(dto => dto.SummaryByYearSmoothed));
-            }
-
-            return (xValues, yValues);
         }
 
         private List<RegionStatisticsDto> CreateEmptyDtos(int year)
@@ -907,7 +890,8 @@ namespace ForecastingWorkingPopulation
 
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
-                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности постоянного населения({regionName})", CalculationStorage.Instance.PermanentPopulationForecast);
+                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности постоянного населения({regionName})", 
+                    CalculationStorage.Instance.PermanentPopulationForecast, CalculationStorage.Instance.GetPermanentPopulationForecastData());
             }
         }
 
@@ -917,6 +901,17 @@ namespace ForecastingWorkingPopulation
             SaveSettings();
             SaveRegionCoefficientSettings(CalculationStorage.Instance.CurrentRegion);
             FormRouting.PreviousForm(1, this);
+        }
+
+        private void PermanentPopulationForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void smoothingCoefficents_SelectedValueChanged(object sender, EventArgs e)
+        {
+            _coefficentsSmoothingCount = smoothingCoefficents.SelectedIndex;
+            CalculateCoefficents();
         }
     }
 }

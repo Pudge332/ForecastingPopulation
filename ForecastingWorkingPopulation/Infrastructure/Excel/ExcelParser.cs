@@ -7,7 +7,9 @@ using ForecastingWorkingPopulation.Models.Enums;
 using ForecastingWorkingPopulation.Models.Excel;
 using OfficeOpenXml;
 using System.Collections.Generic;
+using System.IO.Packaging;
 using System.Reflection;
+using System.Windows.Forms;
 using static OfficeOpenXml.ExcelErrorValue;
 
 namespace ForecastingWorkingPopulation.Infrastructure.Excel
@@ -17,7 +19,6 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
         private List<RegionInfoEntity> Regions = RegionRepository.GetRegions();
         public List<RegionStatisticsDto> Parse(string path, int startRowNumber, List<int> years, int endColumnNumber = 10)
         {
-            //string path = "C:\\Excels\\Республика Карелия.xlsx";
             var preResult = new List<RegionStatisticsExcelItem>();
             var result = new List<RegionStatisticsDto>();
 
@@ -140,12 +141,14 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
             return result;
         }
 
-        public void FillForecastFile(string path, string regionName, string forecastName,Dictionary<int, List<RegionStatisticsDto>> forecastDictionary)
+        public void FillForecastFile(string path, string regionName, string forecastName, Dictionary<int, List<RegionStatisticsDto>> forecastDictionary, 
+            Dictionary<int, List<RegionStatisticsDto>>? retrospectivePermanentData = null, Dictionary<int, List<RegionStatisticsDto>>? retrospectiveEconomyData = null)
         {
-            const int StartRow = 4;
-            const int StartColumn = 3;
-            const string Message = "Численность постоянного населения - {0} по возрасту на 1 января (человек)";
-
+            int startRow = 4;
+            int startColumn = 3;
+            string permanentMessage = "Численность постоянного населения - {0} по возрасту на 1 января (человек)";
+            string economyMessage = "Численность занятого населения - {0} по возрасту на 1 января (человек)";
+            string message = "";
             var headers = new List<string>() { "Возраст", "СФ" };
             var years = forecastDictionary
                 .Select(x => x.Key)
@@ -159,147 +162,129 @@ namespace ForecastingWorkingPopulation.Infrastructure.Excel
                 var maleWorkSheet = package.Workbook.Worksheets.Add("Мужчины");
                 var femaleWorkSheet = package.Workbook.Worksheets.Add("Женщины");
                 var allWorkSheet = package.Workbook.Worksheets.Add("Все");
-                maleWorkSheet.Cells[1, 1].Style.Font.Bold = true;
-                femaleWorkSheet.Cells[1, 1].Style.Font.Bold = true;
-                allWorkSheet.Cells[1, 1].Style.Font.Bold = true;
-                SetHeaders(maleWorkSheet, headers, StartRow - 1);
-                SetHeaders(femaleWorkSheet, headers, StartRow - 1);
-                SetHeaders(allWorkSheet, headers, StartRow - 1); 
-                var currentColumn = StartColumn;
-                for(int age = 0; age < forecastDictionary.Last().Value.Select(x => x.Age).Max(); age++)
-                {
-                    maleWorkSheet.Cells[age + 4, 1].Value = age;
-                    femaleWorkSheet.Cells[age + 4, 1].Value = age;
-                    allWorkSheet.Cells[age + 4, 1].Value = age;
-                    maleWorkSheet.Cells[age + 4, 1].Style.Font.Bold = true;
-                    femaleWorkSheet.Cells[age + 4, 1].Style.Font.Bold = true;
-                    allWorkSheet.Cells[age + 4, 1].Style.Font.Bold = true;
-                    maleWorkSheet.Cells[age + 4, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                    femaleWorkSheet.Cells[age + 4, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                    allWorkSheet.Cells[age + 4, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
-                    maleWorkSheet.Cells[age + 4, 2].Value = regionName;
-                    femaleWorkSheet.Cells[age + 4, 2].Value = regionName;
-                    allWorkSheet.Cells[age + 4, 2].Value = regionName;
-                    maleWorkSheet.Cells[age + 4, 2].Style.Font.Bold = true;
-                    femaleWorkSheet.Cells[age + 4, 2].Style.Font.Bold = true;
-                    allWorkSheet.Cells[age + 4, 2].Style.Font.Bold = true;
-                    maleWorkSheet.Cells[age + 4, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                    femaleWorkSheet.Cells[age + 4, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                    allWorkSheet.Cells[age + 4, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-                    rowsCount++;
+                if (retrospectivePermanentData is not null)
+                {
+                    message = permanentMessage;
+                    AddRangeDictionary(forecastDictionary, retrospectivePermanentData);
                 }
 
-                foreach (var year in years)
+                if (retrospectiveEconomyData is not null)
                 {
-                    if (!forecastDictionary.TryGetValue(year, out var values))
-                        continue;
-
-                    var currentRow = StartRow;
-                    var valuesByAge = values.GroupBy(x => x.Age);
-                    var summaryMalesCount = 0.0;
-                    var summaryFemalesCount = 0.0;
-                    var summaryAllCount = 0.0;
-                    foreach (var valueByAge in valuesByAge)
-                    {
-                        if (currentRow - 4 >= rowsCount)
-                            continue;
-
-                        var allValue = 0.0;
-                        foreach (var value in valueByAge.ToList())
-                        {
-                            if (value.Gender == Gender.Male)
-                            {
-                                maleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
-                                maleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
-                                summaryMalesCount += value.SummaryByYearSmoothed;
-                            }
-                            else
-                            {
-                                femaleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
-                                femaleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
-                                summaryFemalesCount += value.SummaryByYearSmoothed;
-                            }
-                            allValue += value.SummaryByYearSmoothed;
-                        }
-                        allWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(allValue);
-                        summaryAllCount += allValue; 
-                        allWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
-                        currentRow++;
-                    }
-                    maleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryMalesCount);
-                    femaleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryFemalesCount);
-                    allWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryAllCount);
-                    currentColumn++;
+                    message = economyMessage;  
+                    AddRangeDictionary(forecastDictionary, retrospectiveEconomyData);
                 }
+
+                FillFile(package, startRow, startColumn, forecastDictionary, regionName, maleWorkSheet, femaleWorkSheet, allWorkSheet);
 
                 maleWorkSheet.Cells.AutoFitColumns();
                 femaleWorkSheet.Cells.AutoFitColumns();
                 allWorkSheet.Cells.AutoFitColumns();
-                maleWorkSheet.Cells[1, 1].Value = string.Format(Message, "мужчин");
-                femaleWorkSheet.Cells[1, 1].Value = string.Format(Message, "женщин");
-                allWorkSheet.Cells[1, 1].Value = string.Format(Message, "всех");
+                maleWorkSheet.Cells[startRow - 3, startColumn - 2].Value = string.Format(message, "мужчин");
+                femaleWorkSheet.Cells[startRow - 3, startColumn - 2].Value = string.Format(message, "женщин");
+                allWorkSheet.Cells[startRow - 3, startColumn - 2].Value = string.Format(message, "всех");
                 package.SaveAs(new FileInfo(path + $"/{forecastName}.xlsx"));
             }
         }
 
-        public void CreateForecastFile(string path, Dictionary<int, List<RegionStatisticsDto>> forecastDictionary)
+        private void AddRangeDictionary(Dictionary<int, List<RegionStatisticsDto>> forecastDictionary,
+            Dictionary<int, List<RegionStatisticsDto>> additionalData)
         {
-            const int StartRow = 3;
-            const int ColumnOffset = 4;
-            var forecastName = $"Прогноз до {forecastDictionary.Last().Key} года";
-            var headers = new List<string>() { "Все", "Мужчины", "Женщины" };
-            var yearHeaders = forecastDictionary
-                .Select(x => x.Key.ToString())
+            foreach(var data in additionalData)
+                forecastDictionary.TryAdd(data.Key, data.Value);
+        }
+
+        private int FillFile(ExcelPackage package, int startRow, int startColumn, Dictionary<int, List<RegionStatisticsDto>> dataDictionary, string regionName,
+            ExcelWorksheet maleWorkSheet, ExcelWorksheet femaleWorkSheet, ExcelWorksheet allWorkSheet, int startHeadersColumn = 0)
+        {
+            var rowsCount = 0;
+            var headers = new List<string>() { "Возраст", "СФ" };
+            var years = dataDictionary
+                .Select(x => x.Key)
                 .ToList();
-            var column = 2;
-            using(var package = new ExcelPackage())
+            years.Sort();
+            headers.AddRange(years.Select(x => x.ToString()));
+            maleWorkSheet.Cells[startRow - 3, startColumn - 2].Style.Font.Bold = true;
+            femaleWorkSheet.Cells[startRow - 3, startColumn - 2].Style.Font.Bold = true;
+            allWorkSheet.Cells[startRow - 3, startColumn - 2].Style.Font.Bold = true;
+            SetHeaders(maleWorkSheet, headers, startRow - 1, startHeadersColumn);
+            SetHeaders(femaleWorkSheet, headers, startRow - 1, startHeadersColumn);
+            SetHeaders(allWorkSheet, headers, startRow - 1, startHeadersColumn);
+            var currentColumn = startColumn;
+            var maxAge = 0;
+            foreach (var data in dataDictionary)
+                maxAge = Math.Max(data.Value.Where(x => x.SummaryByYearSmoothed > 0).Select(x => x.Age).Max(), maxAge);
+
+            for (int age = 0; age <= maxAge; age++)
             {
-                var worksheet = package.Workbook.Worksheets.Add(forecastName);
-                worksheet.Cells[2, 1].Value = "Возраст";
-                SetYearHeader(worksheet, yearHeaders, 1);
-                for (int ageRow = StartRow; ageRow < 90; ageRow++)
-                    worksheet.Cells[ageRow, 1].Value = (ageRow - 3).ToString();
+                maleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Value = age;
+                femaleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Value = age;
+                allWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Value = age;
+                maleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.Font.Bold = true;
+                femaleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.Font.Bold = true;
+                allWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.Font.Bold = true;
+                maleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                femaleWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                allWorkSheet.Cells[age + startRow, 1 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
-                foreach (var oneYearForecast in forecastDictionary)
-                {
-                    var row = StartRow;
-                    var counter = 0;
-                    foreach(var forecastData in oneYearForecast.Value)
-                    {
-                        counter++;
-                        worksheet.Cells[row, column].Value = GetRoundedValue(oneYearForecast.Value
-                            .Where(dto => dto.Age == forecastData.Age)
-                            .Sum(dto => dto.SummaryByYearSmoothed));
-
-                        if(forecastData.Gender == Gender.Male)
-                            worksheet.Cells[row, column + 1].Value = GetRoundedValue(forecastData.SummaryByYearSmoothed);
-                        else
-                            worksheet.Cells[row, column + 2].Value = GetRoundedValue(forecastData.SummaryByYearSmoothed);
-
-                        if (counter % 2 == 0)
-                            row++;
-                    }
-                    SetHeaders(worksheet, headers, 2, column - 1);
-                    column += ColumnOffset;
-                }
-                package.SaveAs(new FileInfo(path + $"/{forecastName}.xlsx"));
+                maleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Value = regionName;
+                femaleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Value = regionName;
+                allWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Value = regionName;
+                maleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.Font.Bold = true;
+                femaleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.Font.Bold = true;
+                allWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.Font.Bold = true;
+                maleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                femaleWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                allWorkSheet.Cells[age + startRow, 2 + startHeadersColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                rowsCount++;
             }
+
+            foreach (var year in years)
+            {
+                if (!dataDictionary.TryGetValue(year, out var values))
+                    continue;
+
+                var currentRow = startRow;
+                var valuesByAge = values.GroupBy(x => x.Age);
+                var summaryMalesCount = 0.0;
+                var summaryFemalesCount = 0.0;
+                var summaryAllCount = 0.0;
+                foreach (var valueByAge in valuesByAge)
+                {
+                    var allValue = 0.0;
+                    foreach (var value in valueByAge.ToList())
+                    {
+                        if (value.Gender == Gender.Male)
+                        {
+                            maleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
+                            maleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                            summaryMalesCount += value.SummaryByYearSmoothed;
+                        }
+                        else
+                        {
+                            femaleWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(value.SummaryByYearSmoothed);
+                            femaleWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                            summaryFemalesCount += value.SummaryByYearSmoothed;
+                        }
+                        allValue += value.SummaryByYearSmoothed;
+                    }
+                    allWorkSheet.Cells[currentRow, currentColumn].Value = GetRoundedValue(allValue);
+                    summaryAllCount += allValue;
+                    allWorkSheet.Cells[currentRow, currentColumn].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                    currentRow++;
+                }
+                maleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryMalesCount);
+                femaleWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryFemalesCount);
+                allWorkSheet.Cells[currentRow + 1, currentColumn].Value = GetRoundedValue(summaryAllCount);
+                currentColumn++;
+            }
+
+            return rowsCount;
         }
 
         private string GetRoundedValue(double value)
         {
-            return Math.Round(value, 2).ToString();
-        }
-
-        private void SetYearHeader(ExcelWorksheet worksheet, List<string> headers, int row)
-        {
-            var column = 3;
-            for (int i = 0; i < headers.Count; i++)
-            {
-                worksheet.Cells[row, column].Value = headers[i];
-                column += 4;
-            }
+            return Math.Round(value, 0).ToString();
         }
 
         private void SetHeaders(ExcelWorksheet worksheet, List<string> headers, int row, int startColumn = 0)

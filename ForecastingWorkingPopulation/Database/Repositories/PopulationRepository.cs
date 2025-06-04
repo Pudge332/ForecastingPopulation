@@ -19,7 +19,7 @@ namespace ForecastingWorkingPopulation.Database.Repositories
 
         private void Init(PopulationContext dbContext)
         {
-            dbContext.Database.Migrate();
+            _dbContext.Database.Migrate();
             FillRegions();
         }
 
@@ -221,6 +221,8 @@ namespace ForecastingWorkingPopulation.Database.Repositories
                 existingSettings.SelectedSmoothing = settings.SelectedSmoothing;
                 existingSettings.WindowSize = settings.WindowSize;
                 existingSettings.DeltaValue = settings.DeltaValue;
+                existingSettings.CoefficientWindowSize = settings.CoefficientWindowSize;
+                existingSettings.SelectedCoefficientSmoothing = settings.SelectedCoefficientSmoothing;
                 existingSettings.SelectedCoefficientProcessing = settings.SelectedCoefficientProcessing;
             }
             else
@@ -258,6 +260,12 @@ namespace ForecastingWorkingPopulation.Database.Repositories
             }
             else
             {
+                if (settings.EconomyEmploedMaxY is double.NaN)
+                    settings.EconomyEmploedMaxY = 0;
+
+                if (settings.EconomyEmploedSmoothMaxY is double.NaN)
+                    settings.EconomyEmploedSmoothMaxY = 0;
+
                 // Добавляем новые настройки
                 _dbContext.RegionEconomyEmploedFormSettings.Add(settings);
             }

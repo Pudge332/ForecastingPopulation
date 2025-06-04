@@ -37,7 +37,7 @@ namespace ForecastingWorkingPopulation
                 regionId = 10;
 
             // Обновляем заголовок формы, чтобы показать текущий регион
-            this.Text = $"Прогноз занятого в экономике населения региона (ID: {regionId})";
+            this.Text = $"Прогноз занятого в экономике населения региона (ID: {regionId} - {RegionRepository.GetRegionNameById(regionId)})";
 
             // Загружаем настройки формы
             LoadSettings();
@@ -161,8 +161,11 @@ namespace ForecastingWorkingPopulation
                 }
             }
             (xValues, yValues) = SelectByGender(forecastValues);
-            maxY = Math.Max(yValues.Max(), maxY);
-            forecast.ChartAreas[0].AxisY.Maximum = maxY * 1.3;
+            if (yValues.Any())
+            {
+                maxY = Math.Max(yValues.Max(), maxY);
+                forecast.ChartAreas[0].AxisY.Maximum = maxY * 1.3;
+            }
             forecast.ChartAreas[0].AxisX.Maximum = 70;
             forecast.ChartAreas[0].AxisX.Minimum = 12;
             forecast.Series.Add(_painter.PaintLinearGraph($"Прогноз на {year}", xValues, yValues));
@@ -275,7 +278,8 @@ namespace ForecastingWorkingPopulation
 
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
-                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности занятого в экономике населения({regionName})", forecastDictionary);
+                _excelParser.FillForecastFile(folderBrowserDialog1.SelectedPath, regionName, $"Прогноз численности занятого в экономике населения({regionName})", 
+                    forecastDictionary, retrospectiveEconomyData: CalculationStorage.Instance.GetEconomyEmploedForecastData());
             }
         }
 

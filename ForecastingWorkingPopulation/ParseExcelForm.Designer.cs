@@ -98,7 +98,7 @@
             Controls.Add(button1);
             Controls.Add(dataGridView1);
             Name = "ParseExcelForm";
-            Text = "ParseExcel";
+            Text = "Выбор региона для загрузки данных";
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
         }

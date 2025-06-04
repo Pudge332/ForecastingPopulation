@@ -92,10 +92,10 @@ new RegionInfoEntity { Name = "Ямало-Ненецкий автономный 
 new RegionInfoEntity { Name = "Иные территории, включая город и космодром Байконур", Number = 99, LastUpdateTime = DateTime.Now } };
         }
 
-        public static string GetRegionNameById(int regionId)
+        public static string? GetRegionNameById(int regionId)
         {
             var regions = GetRegions();
-            return regions.FirstOrDefault(x => x.Number == regionId)?.Name;
+            return regions?.FirstOrDefault(x => x.Number == regionId)?.Name;
         }
     }
 }

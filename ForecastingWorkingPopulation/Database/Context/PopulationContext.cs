@@ -1,4 +1,5 @@
 ﻿using ForecastingWorkingPopulation.Database.Models;
+using ForecastingWorkingPopulation.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace ForecastingWorkingPopulation.Database.Context
@@ -37,7 +38,11 @@ namespace ForecastingWorkingPopulation.Database.Context
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=Population.db");
+            // Используем DatabasePathManager для получения пути к файлу базы данных
+            string dbPath = DatabasePathManager.GetDatabasePath();
+
+            // Используем абсолютный путь к файлу базы данных
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
     }
 }

@@ -60,7 +60,7 @@ namespace ForecastingWorkingPopulation.Infrastructure
             }
         }
 
-        public Dictionary<int, List<RegionStatisticsDto>> GetEconomyPermanentPopulationForecastData()
+        public Dictionary<int, List<RegionStatisticsDto>> GetPermanentPopulationForecastData()
         {
             return permanentPopulationdForecastData;
         }

@@ -22,7 +22,13 @@ namespace ForecastingWorkingPopulation.Infrastructure
             foreach (var yearGroup in groupedByYear)
             {
                 var selectedData = SelectByGender(gender, yearGroup).ToList();
-                result.AddRange(_smoothingCalculator.SmoothingValuesDto(selectedData, windowSize, SmoothingType.MovingAverageWindow, smoothingCount));
+                if (gender == GenderComboBox.All)
+                {
+                    result.AddRange(_smoothingCalculator.SmoothingValuesDto(SelectByGender(GenderComboBox.Males, yearGroup).ToList(), windowSize, SmoothingType.MovingAverageWindow, smoothingCount));
+                    result.AddRange(_smoothingCalculator.SmoothingValuesDto(SelectByGender(GenderComboBox.Females, yearGroup).ToList(), windowSize, SmoothingType.MovingAverageWindow, smoothingCount));
+                }
+                else
+                    result.AddRange(_smoothingCalculator.SmoothingValuesDto(selectedData, windowSize, SmoothingType.MovingAverageWindow, smoothingCount));
             }
 
             return result;

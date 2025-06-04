@@ -23,11 +23,12 @@ namespace ForecastingWorkingPopulation.Database.Models
         /// Выбранный тип сглаживания в комбобоксе
         /// </summary>
         public int SelectedSmoothing { get; set; }
-
+        public int SelectedCoefficientSmoothing { get; set; }
         /// <summary>
         /// Размер окна сглаживания
         /// </summary>
         public int WindowSize { get; set; }
+        public int CoefficientWindowSize { get; set; }
 
         public int SelectedCoefficientProcessing { get; set; }
         public int DeltaValue { get; set; }
@@ -35,6 +36,6 @@ namespace ForecastingWorkingPopulation.Database.Models
         /// <summary>
         /// Максимальное значение по оси Y для графика постоянного населения
         /// </summary>
-        public double PermanentPopulationMaxY { get; set; }
+        public double PermanentPopulationMaximumY { get; set; }
     }
 }

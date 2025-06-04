@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <None Update="Population.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Population.db-shm" Condition="Exists('Population.db-shm')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -89,6 +89,7 @@
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
             comboBox1.TabIndex = 2;
+            comboBox1.Text = "Все";
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
             // numericUpDown1
@@ -137,7 +138,7 @@
             ExportButton.Name = "ExportButton";
             ExportButton.Size = new Size(118, 63);
             ExportButton.TabIndex = 7;
-            ExportButton.Text = "Экспорт прогноза в эксель";
+            ExportButton.Text = "Экспорт расчетов в Excel";
             ExportButton.UseVisualStyleBackColor = true;
             ExportButton.Click += button1_Click;
             // 
@@ -166,18 +167,18 @@
             label3.AutoSize = true;
             label3.Location = new Point(1321, 24);
             label3.Name = "label3";
-            label3.Size = new Size(307, 15);
+            label3.Size = new Size(241, 15);
             label3.TabIndex = 9;
-            label3.Text = "Прогноз численности занятого в кэномике населения";
+            label3.Text = "Прогноз численности занятого населения";
             // 
             // label4
             // 
             label4.AutoSize = true;
             label4.Location = new Point(297, 24);
             label4.Name = "label4";
-            label4.Size = new Size(438, 15);
+            label4.Size = new Size(365, 15);
             label4.TabIndex = 10;
-            label4.Text = "Возрастной профиль прогноза численности занятого в экономике населения";
+            label4.Text = "Возрастной профиль прогноза численности занятого населения";
             // 
             // exitButton
             // 

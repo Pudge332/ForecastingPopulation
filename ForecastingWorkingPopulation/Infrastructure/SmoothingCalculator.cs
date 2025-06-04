@@ -29,6 +29,18 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return result;
         }
 
+        public List<RegionCoefficentDto> SmoothingValuesDto(IEnumerable<RegionCoefficentDto> data, int windowSize, SmoothingType smoothingType, int smoothingCount = 1)
+        {
+            var result = new List<RegionCoefficentDto>(data);
+            foreach (var item in data)
+                item.Coefficent = item.Coefficent;
+
+            for (int i = 0; i < smoothingCount; i++)
+                result = SetSmoothingType(result, windowSize, smoothingType);
+
+            return result;
+        }
+
         public List<RegionInEconomyLevelDto> SmoothingValuesDto(IEnumerable<RegionInEconomyLevelDto> data, int windowSize, SmoothingType smoothingType, int smoothingCount = 1)
         {
             var result = new List<RegionInEconomyLevelDto>(data);
@@ -39,6 +51,17 @@ namespace ForecastingWorkingPopulation.Infrastructure
                 result = SetSmoothingType(result, windowSize, smoothingType);
 
             return result;
+        }
+
+        private List<RegionCoefficentDto> SetSmoothingType(IEnumerable<RegionCoefficentDto> dtos, int windowSize, SmoothingType smoothingType)
+        {
+            switch (smoothingType)
+            {
+                case SmoothingType.MovingAverageWindow:
+                    return MovingAverageSmoothing(dtos.ToList(), windowSize);
+            }
+
+            return null;
         }
 
         private List<RegionStatisticsDto> SetSmoothingType(IEnumerable<RegionStatisticsDto> dtos, int windowSize, SmoothingType smoothingType)
@@ -69,6 +92,17 @@ namespace ForecastingWorkingPopulation.Infrastructure
             return null;
         }
 
+        public List<RegionCoefficentDto> MovingAverageSmoothing(List<RegionCoefficentDto> data, int windowSize)
+        {
+            for (int i = 0; i < data.Count - windowSize; i++)
+            {
+                var smoothingValue = GetSumInRange(data, i, i + windowSize) / windowSize;
+                data[i].Coefficent = smoothingValue;
+            }
+
+            return data;
+        }
+
         public List<RegionStatisticsDto> MovingAverageSmoothing(List<RegionStatisticsDto> data, int windowSize)
         {
             for (int i = 0; i < data.Count - windowSize; i++)
@@ -89,6 +123,15 @@ namespace ForecastingWorkingPopulation.Infrastructure
             }
 
             return data;
+        }
+
+        public double GetSumInRange(List<RegionCoefficentDto> data, int startIndex, int endIndex)
+        {
+            var result = 0.0;
+            for (int i = startIndex; i < endIndex; i++)
+                result += data[i].Coefficent;
+
+            return result;
         }
 
         public double GetSumInRange(List<RegionStatisticsDto> data, int startIndex, int endIndex)
