@@ -190,7 +190,7 @@ namespace ForecastingWorkingPopulation
             var forecastValues = forecastDictionary;
             foreach (var currentValues in forecastValues.Values)
             {
-                for (int age = 10; age < 80; age += 10)
+                for (int age = 20; age < 80; age += 10)
                 {
                     var valuesInDictionary = new List<double>();
                     var currentYearGroupp = currentValues.Where(dto => dto.Age == age).ToList();
